@@ -1,0 +1,51 @@
+name: Finish release
+
+on:
+  push:
+    branches:
+     - master 
+
+jobs:
+  Build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Yarn install
+        run: yarn install --network-timeout 1000000
+
+      - name: Generate static files
+        run: yarn generate
+
+      - name: Create .nojekyll file
+        run: touch ./dist/.nojekyll
+
+      - name: Deploy Page to GitHub-Pages
+        run: yarn deploy
+      
+
+  FinishRelease:
+    needs: Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Draft release
+        id: draft_release
+        uses: release-drafter/release-drafter@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create pull request back to develop
+        uses: peter-evans/create-pull-request@v3.4.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          title: Back-Merge release from master into develop
+          body: This pull request has been created by the release CICD to bring changes from the release branch into develop.
+          branch: dev
+          base: master
+          
