@@ -16,22 +16,22 @@ jobs:
       id: draft_release
       uses: release-drafter/release-drafter@v5
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.MERGEPDF }}
 
     - name: Create release branch
       run: |
         git checkout -b release-${{ steps.draft_release.outputs.tag_name }}
         git checkout release-${{ steps.draft_release.outputs.tag_name }}
         git push --set-upstream origin release-${{ steps.draft_release.outputs.tag_name }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
     - name: Replace Version Info
       uses: jacobtomlinson/gha-find-replace@master
       with:
         find: '"version": "\d+\.\d+\.\d+"'
         replace: '"version": "${{ steps.draft_release.outputs.tag_name }}"'
         include: "package.json"
-
-    - name: Bump relay and docs version
-      run: git submodule update --recursive --remote
 
     - name: Commit changes
       run: |
@@ -40,6 +40,7 @@ jobs:
         git add .
         git commit -m "Bumped version number"
         git push
+
     - name: Create pull request to master
       run: gh pr create --base master --reviewer h0p3zZ,AndreasLeeb,lgumpinger,MichiFab --title "Release ${{ steps.draft_release.outputs.tag_name }}" --body "This pull request has been created by the release CICD to create a release."
       env:
