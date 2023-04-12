@@ -1,17 +1,15 @@
 {
   "name": "merge.pdf",
-  "version": "0.0.0",
+  "version": "0.1.3",
   "private": true,
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare",
-    "deploy": "gh-pages --dotfiles -d dist"
+    "postinstall": "nuxt prepare"
   },
   "devDependencies": {
-    "nuxt": "^3.3.2",
-    "gh-pages": "^5.0.0"
+    "nuxt": "^3.3.2"
   }
 }
