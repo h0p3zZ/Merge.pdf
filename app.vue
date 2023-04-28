@@ -1,5 +1,5 @@
 <template>
   <div>
-    <NuxtWelcome />
+    <ImportPDF></ImportPDF>
   </div>
 </template>
