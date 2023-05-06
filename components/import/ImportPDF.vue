@@ -1,8 +1,13 @@
 <template>
     <input type="file" class="btn btn-primary" @change="onFileChanged" accept=".pdf" />
     <button @click="clicked">Test</button>
+    <div id="pageContainer">
+        <div id="viewer" class="pdfViewer"></div>
+    </div>
 </template>
 <script setup lang="ts">
+import pdfjsLib from "pdfjs-dist";
+import { PDFViewer } from "pdfjs-dist/web/pdf_viewer";
 import { PDFDocument } from 'pdf-lib';
 
 function clicked() {
@@ -34,14 +39,18 @@ async function onFileChanged($event: Event): Promise<void> {
         if (bytes) {
             console.log("file read");
             const pdfDoc = await PDFDocument.load(bytes);
+            console.log("pages: " + pdfDoc.getPageCount());
             //const firstPage = pdfDoc.getPage(0);
             const newDoc = await PDFDocument.create();
             await newDoc.copyPages(pdfDoc, [0]);
             //newDoc.addPage(test[0]);
             const byteArray = await newDoc.save();
-            const blob = new Blob([byteArray], { type: "application/pdf" });
-            const url = URL.createObjectURL(blob);
-            console.log(url);
+            const doc = await pdfjsLib.getDocument(byteArray).promise;
+            let cont = document.getElementById("pageContainer") as HTMLDivElement;
+            // let pdfViewer = new PDFViewer({
+            //     container: cont as HTMLDivElement
+            // });
+            // pdfViewer.setDocument(doc);
         }
     }
 }
