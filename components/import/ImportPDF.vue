@@ -6,9 +6,10 @@
     </div>
 </template>
 <script setup lang="ts">
-import pdfjsLib from "pdfjs-dist";
-import { PDFViewer } from "pdfjs-dist/web/pdf_viewer";
 import { PDFDocument } from 'pdf-lib';
+import pdfjsLib from "pdfjs-dist";
+import { EventBus, PDFLinkService, PDFViewer } from "pdfjs-dist/web/pdf_viewer";
+import { IL10n } from "pdfjs-dist/types/web/interfaces";
 
 function clicked() {
     console.log("click");
@@ -47,10 +48,13 @@ async function onFileChanged($event: Event): Promise<void> {
             const byteArray = await newDoc.save();
             const doc = await pdfjsLib.getDocument(byteArray).promise;
             let cont = document.getElementById("pageContainer") as HTMLDivElement;
-            // let pdfViewer = new PDFViewer({
-            //     container: cont as HTMLDivElement
-            // });
-            // pdfViewer.setDocument(doc);
+            let pdfViewer = new PDFViewer({
+                container: cont as HTMLDivElement,
+                eventBus: new EventBus(),
+                linkService: new PDFLinkService(),
+                l10n: new IL10n()
+            });
+            pdfViewer.setDocument(doc);
         }
     }
 }
