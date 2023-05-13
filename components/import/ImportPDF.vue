@@ -5,11 +5,19 @@
         <div id="viewer" class="pdfViewer"></div>
     </div>
 </template>
+
+<style lang="css">
+#pageContainer {
+    position: absolute;
+}
+</style>
+
 <script setup lang="ts">
 import { PDFDocument } from 'pdf-lib';
-import * as pdfjsLib from "pdfjs-dist";
-import { EventBus, PDFLinkService, PDFViewer } from "pdfjs-dist/web/pdf_viewer";
-// import { IL10n } from "pdfjs-dist/types/web/interfaces";
+import pdfjs from "@bundled-es-modules/pdfjs-dist/build/pdf";
+import viewer from "@bundled-es-modules/pdfjs-dist/web/pdf_viewer";
+
+pdfjs.GlobalWorkerOptions.workerSrc = "_nuxt/node_modules/@bundled-es-modules/pdfjs-dist/build/pdf.worker.js";
 
 function clicked() {
     console.log("click");
@@ -46,13 +54,26 @@ async function onFileChanged($event: Event): Promise<void> {
             await newDoc.copyPages(pdfDoc, [0]);
             //newDoc.addPage(test[0]);
             const byteArray = await newDoc.save();
-            const doc = await pdfjsLib.getDocument(byteArray).promise;
+            const doc = await pdfjs.getDocument(byteArray).promise;
             let cont = document.getElementById("pageContainer") as HTMLDivElement;
-            let pdfViewer = new PDFViewer({
+            let pdfViewer = new viewer.PDFViewer({
                 container: cont as HTMLDivElement,
-                eventBus: new EventBus(),
-                linkService: new PDFLinkService(),
-                // l10n: new IL10n(),
+                eventBus: new viewer.EventBus(),
+                linkService: new viewer.PDFLinkService(),
+                l10n: {
+                    async getLanguage(): Promise<string> {
+                        return "en-US";
+                    },
+                    async getDirection(): Promise<string> {
+                        return "";
+                    },
+                    async get(key: any, args?: null, fallback?: any): Promise<any> {
+                        return null;
+                    },
+                    async translate(element: any): Promise<void> {
+
+                    }
+                }
             });
             pdfViewer.setDocument(doc);
         }
