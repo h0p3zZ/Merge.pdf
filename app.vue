@@ -1,5 +1,7 @@
 <template>
   <div>
-    <NuxtWelcome />
+    <ClientOnly placeholder="loading...">
+      <ImportPDF></ImportPDF>
+    </ClientOnly>
   </div>
 </template>
