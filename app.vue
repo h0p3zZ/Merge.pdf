@@ -1,7 +1,7 @@
 <template>
   <div>
     <ClientOnly placeholder="loading...">
-      <ImportPDF></ImportPDF>
+      <ExportPDF></ExportPDF>
     </ClientOnly>
   </div>
 </template>
