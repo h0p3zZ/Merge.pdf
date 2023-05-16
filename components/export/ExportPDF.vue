@@ -1,6 +1,5 @@
 <template>
     <button class="btn btn-primary" id="btnSave" @click="saveFile" :disabled="disabled">Save</button>
-    
 </template>
 
 <script setup lang="ts">
@@ -15,8 +14,17 @@ const props = defineProps({
 });
 //#endregion
 
-const pdfData = computed(() => props.pdfData);
-const disabled = computed(() => props.pdfData?.byteLength > 0 ? false : true);
+const pdfData = ref<ArrayBuffer>(new ArrayBuffer(0));
+const disabled = ref(true);
+
+watch(() => props.pdfData, (newData) => {
+    if(newData && newData.byteLength > 0) {
+        pdfData.value = newData;
+        disabled.value = false;
+    } else {
+        disabled.value = true;
+    }
+})
 
 async function saveFile($event: Event): Promise<void>{
     const link = document.createElement('a');

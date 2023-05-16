@@ -35,8 +35,6 @@ let cont: HTMLDivElement;
 let pdfViewer: viewer.PDFViewer;
 
 async function pdfChanged() {
-    console.log('pdfChanged>');
-
     cont ??= document.getElementById("pageContainer") as HTMLDivElement;
     pdfViewer ??= new viewer.PDFViewer({
         container: cont as HTMLDivElement,
@@ -59,7 +57,10 @@ async function pdfChanged() {
         textLayerMode: 0
     });
 
-    const doc = await pdfjs.getDocument(pdfData.value).promise;
+    const tempPdf = new Uint8Array(new ArrayBuffer(pdfData.value.byteLength));
+    tempPdf.set(new Uint8Array(pdfData.value));
+
+    const doc = await pdfjs.getDocument(tempPdf as ArrayBuffer).promise;
     pdfViewer.setDocument(doc);
 
     // custom rendering

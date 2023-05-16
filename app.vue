@@ -12,7 +12,7 @@
 import { PDFDocument } from 'pdf-lib';
 
 const pdf = PDFDocument.create();
-const pdfData = ref<ArrayBuffer>();
+const pdfData = ref<ArrayBuffer>(new ArrayBuffer(0));
 
 function importChanged(pdfD: ArrayBuffer) {
   pdfData.value = pdfD;
