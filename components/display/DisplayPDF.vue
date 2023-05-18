@@ -1,8 +1,5 @@
 <template>
-    <!-- <canvas id="my-canvas"></canvas> -->
-    <div id="pageContainer">
-        <div id="viewer" class="pdfViewer"></div>
-    </div>
+    <DisplayPage v-for="(page, index) in pages" :page="page" :key="index" :index="index"></DisplayPage>
 </template>
 <style lang="css">
 #pageContainer {
@@ -15,8 +12,8 @@
 } */
 </style>
 <script setup lang="ts">
-import pdfjs from "@bundled-es-modules/pdfjs-dist/build/pdf";
-import viewer from "@bundled-es-modules/pdfjs-dist/web/pdf_viewer";
+import pdfjs, { PDFPageProxy } from "@bundled-es-modules/pdfjs-dist/build/pdf";
+import { PDFDocument, PDFPage } from "pdf-lib";
 
 pdfjs.GlobalWorkerOptions.workerSrc = "_nuxt/node_modules/@bundled-es-modules/pdfjs-dist/build/pdf.worker.js";
 
@@ -28,40 +25,34 @@ const props = defineProps({
 });
 
 const pdfData = computed(() => props.pdfData);
+const pages = ref<PDFPageProxy[]>();
 
 watch(() => props.pdfData, pdfChanged);
 
-let cont: HTMLDivElement;
-let pdfViewer: viewer.PDFViewer;
-
 async function pdfChanged() {
-    cont ??= document.getElementById("pageContainer") as HTMLDivElement;
-    pdfViewer ??= new viewer.PDFViewer({
-        container: cont as HTMLDivElement,
-        eventBus: new viewer.EventBus(),
-        linkService: new viewer.PDFLinkService(),
-        l10n: {
-            async getLanguage(): Promise<string> {
-                return "en-US";
-            },
-            async getDirection(): Promise<string> {
-                return "";
-            },
-            async get(key: any, args?: null, fallback?: any): Promise<any> {
-                return null;
-            },
-            async translate(element: any): Promise<void> {
-
-            }
-        },
-        textLayerMode: 0
-    });
-
     const tempPdf = new Uint8Array(new ArrayBuffer(pdfData.value.byteLength));
     tempPdf.set(new Uint8Array(pdfData.value));
 
-    const doc = await pdfjs.getDocument(tempPdf as ArrayBuffer).promise;
-    pdfViewer.setDocument(doc);
+    const doc = await pdfjs.getDocument(tempPdf).promise;
+    const arr = new Array<PDFPageProxy>(doc.numPages);
+    
+    for (let i = 1; i <= doc.numPages; i++) {
+        arr[i] = await doc.getPage(i);
+    }
+
+    pages.value = arr;
+
+    // const arr = new Array<ArrayBuffer>(doc.getPageCount());
+    
+    // for (let i = 0; i < doc.getPageCount(); i++) {
+    //     const newDoc = await PDFDocument.create();
+    //     const copiedPages = await newDoc.copyPages(doc, [i]);
+    //     copiedPages.forEach((page) => newDoc.addPage(page));
+    //     //newDoc.addPage(copiedPages[0]);
+    //     const byteArray = await newDoc.save();
+    //     arr[i] = byteArray;
+    // }
+    // pagesData.value = arr;
 
     // custom rendering
     // const page1 = await doc.getPage(1);
