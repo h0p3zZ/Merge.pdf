@@ -1,5 +1,7 @@
 <template>
-    <DisplayPage v-for="(page, index) in pages" :page="page" :key="index" :index="index"></DisplayPage>
+    <div v-if="nrOfPages">
+        <DisplayPage v-for="i in nrOfPages" :pdfData="pdfData" :key="i" :index="1"></DisplayPage>
+    </div>
 </template>
 <style lang="css">
 #pageContainer {
@@ -12,7 +14,8 @@
 } */
 </style>
 <script setup lang="ts">
-import pdfjs, { PDFPageProxy } from "@bundled-es-modules/pdfjs-dist/build/pdf";
+import pdfjs, { PDFDocumentProxy, PDFPageProxy } from "@bundled-es-modules/pdfjs-dist/build/pdf";
+import viewer from "@bundled-es-modules/pdfjs-dist/web/pdf_viewer";
 import { PDFDocument, PDFPage } from "pdf-lib";
 
 pdfjs.GlobalWorkerOptions.workerSrc = "_nuxt/node_modules/@bundled-es-modules/pdfjs-dist/build/pdf.worker.js";
@@ -25,22 +28,28 @@ const props = defineProps({
 });
 
 const pdfData = computed(() => props.pdfData);
-const pages = ref<PDFPageProxy[]>();
+const nrOfPages = ref<Number>();
 
 watch(() => props.pdfData, pdfChanged);
+
+onMounted(() => {
+    
+    //pdfChanged();
+});
+
 
 async function pdfChanged() {
     const tempPdf = new Uint8Array(new ArrayBuffer(pdfData.value.byteLength));
     tempPdf.set(new Uint8Array(pdfData.value));
 
     const doc = await pdfjs.getDocument(tempPdf).promise;
-    const arr = new Array<PDFPageProxy>(doc.numPages);
+    nrOfPages.value = doc.numPages;
     
-    for (let i = 1; i <= doc.numPages; i++) {
-        arr[i] = await doc.getPage(i);
-    }
+    // for (let i = 1; i <= doc.numPages; i++) {
+    //     arr[i] = await doc.getPage(i);
+    // }
 
-    pages.value = arr;
+    // pages.value = arr;
 
     // const arr = new Array<ArrayBuffer>(doc.getPageCount());
     
