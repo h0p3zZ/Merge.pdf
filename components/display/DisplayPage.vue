@@ -53,9 +53,9 @@ async function pdfChanged() {
     if (!viewerContainer.value || !pdfData.value) return;
     // cont ??= document.getElementById("pageContainer"+props.index) as HTMLDivElement;
 
-    const tempPdf = new Uint8Array(new ArrayBuffer(pdfData.value.byteLength));
-    tempPdf.set(new Uint8Array(pdfData.value));
-    const pdf = await pdfjs.getDocument(tempPdf).promise;
+    // const tempPdf = new Uint8Array(new ArrayBuffer(pdfData.value.byteLength));
+    // tempPdf.set(new Uint8Array(pdfData.value));
+    const pdf = await pdfjs.getDocument(pdfData.value).promise;
     const page = await pdf.getPage(1);
 
     pdfViewer ??= new viewer.PDFPageView({

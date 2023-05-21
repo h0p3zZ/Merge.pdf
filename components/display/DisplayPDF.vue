@@ -1,6 +1,9 @@
 <template>
     <div v-if="nrOfPages">
-        <DisplayPage v-for="i in nrOfPages" :pdfData="pdfData" :key="i" :index="1"></DisplayPage>
+        <!-- <DisplayPage v-for="i in nrOfPages" :pdfData="pdfData" :key="i" :index="1"></DisplayPage> -->
+        <div v-for="i in nrOfPages" @dragover.prevent @drop="drop($event, parseInt(i.toString()))">
+            <canvas :id="'page' + i" :draggable="true" @dragstart="drag($event, parseInt(i.toString()))"></canvas>
+        </div>
     </div>
 </template>
 <style lang="css">
@@ -29,22 +32,43 @@ const props = defineProps({
 
 const pdfData = computed(() => props.pdfData);
 const nrOfPages = ref<Number>();
+let doc: PDFDocumentProxy;
+let permutation: number[];
 
 watch(() => props.pdfData, pdfChanged);
 
 onMounted(() => {
-    
+
     //pdfChanged();
 });
 
+function drop(event: DragEvent, i: number) {
+    let data = event.dataTransfer?.getData("originalPageNumber");
+    if (data) {
+        const originalPageNumber = parseInt(data);
+        const originalPage = permutation[originalPageNumber - 1];
+        permutation[originalPageNumber - 1] = permutation[i - 1];
+        permutation[i - 1] = originalPage;
+        console.log(`dropped ${originalPage} at ${i}`);
+        renderPage(i);
+        renderPage(originalPageNumber);
+    }
+}
+
+function drag(event: DragEvent, i: number) {
+    event.dataTransfer?.setData("originalPageNumber", i.toString())
+    console.log(`dragged from ${i}`);
+}
+
 
 async function pdfChanged() {
-    const tempPdf = new Uint8Array(new ArrayBuffer(pdfData.value.byteLength));
-    tempPdf.set(new Uint8Array(pdfData.value));
+    // const tempPdf = new Uint8Array(new ArrayBuffer(pdfData.value.byteLength));
+    // tempPdf.set(new Uint8Array(pdfData.value));
 
-    const doc = await pdfjs.getDocument(tempPdf).promise;
+    doc = await pdfjs.getDocument(pdfData.value).promise;
     nrOfPages.value = doc.numPages;
-    
+    permutation = Array.from({ length: doc.numPages }, (_, index) => index + 1);
+
     // for (let i = 1; i <= doc.numPages; i++) {
     //     arr[i] = await doc.getPage(i);
     // }
@@ -52,7 +76,7 @@ async function pdfChanged() {
     // pages.value = arr;
 
     // const arr = new Array<ArrayBuffer>(doc.getPageCount());
-    
+
     // for (let i = 0; i < doc.getPageCount(); i++) {
     //     const newDoc = await PDFDocument.create();
     //     const copiedPages = await newDoc.copyPages(doc, [i]);
@@ -64,6 +88,9 @@ async function pdfChanged() {
     // pagesData.value = arr;
 
     // custom rendering
+    for (let i = 1; i <= doc.numPages; i++) {
+        renderPage(i);
+    }
     // const page1 = await doc.getPage(1);
     // const viewport = page1.getViewport({ scale: 1 });
     // const canvas = document.getElementById("my-canvas") as HTMLCanvasElement;
@@ -73,4 +100,15 @@ async function pdfChanged() {
     // console.log(`height: ${canvas.height}, width: ${canvas.width}`);
     // await page1.render({ canvasContext: context, viewport: viewport }).promise;
 }
+
+async function renderPage(i: number) {
+    const page = await doc.getPage(permutation[i - 1]);
+    const viewport = page.getViewport({ scale: 1 });
+    const canvas = document.getElementById(`page${i}`) as HTMLCanvasElement;
+    const context = canvas.getContext("2d") as CanvasRenderingContext2D;
+    canvas.height = viewport.height;
+    canvas.width = viewport.width;
+    await page.render({ canvasContext: context, viewport: viewport }).promise;
+}
+
 </script>
