@@ -1,0 +1,44 @@
+name: Create release branch
+
+on:
+  workflow_dispatch:
+
+jobs:
+  Branch:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Launch Release Drafter
+        id: draft_release
+        uses: release-drafter/release-drafter@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create release branch
+        run: |
+          git checkout -b release-${{ steps.draft_release.outputs.tag_name }}
+          git checkout release-${{ steps.draft_release.outputs.tag_name }}
+          git push --set-upstream origin release-${{ steps.draft_release.outputs.tag_name }}
+
+      - name: Replace Version Info
+        uses: jacobtomlinson/gha-find-replace@master
+        with:
+          find: '"version": "\d+\.\d+\.\d+"'
+          replace: '"version": "${{ steps.draft_release.outputs.tag_name }}"'
+          include: "package.json"
+
+      - name: Commit changes
+        run: |
+          git config user.email "action@github.com"
+          git config user.name "GitHub Action"
+          git add .
+          git commit -m "Bumped version number"
+          git push
+
+      - name: Create pull request to master
+        run: gh pr create --base master --reviewer h0p3zZ,AndreasLeeb,lgumpinger,MchiFab --title "Release ${{ steps.draft_release.outputs.tag_name }}" --body "This pull request has been created by the release CICD to create a release."
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

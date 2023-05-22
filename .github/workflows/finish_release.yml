@@ -1,0 +1,50 @@
+name: Finish release
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  Deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        
+      - name: Yarn install
+        run: yarn install --network-timeout 1000000
+
+      - name: Generate static files
+        run: yarn generate
+
+      - name: Deploy page to GitHub-Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          
+  FinishRelease:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Draft release
+        id: draft_release
+        uses: release-drafter/release-drafter@v5
+        with:
+          publish: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create pull request back to develop
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          title: Back-Merge release from master into develop
+          body: This pull request has been created by the release CICD to bring changes from the release branch into develop.
+          branch: dev
+          base: master
