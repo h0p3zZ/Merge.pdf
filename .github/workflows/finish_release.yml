@@ -19,6 +19,11 @@ jobs:
       - name: Generate static files
         run: yarn generate
 
+      - name: Copy worker to dist
+        run: |
+          mkdir -p "./dist/_nuxt/node_modules/@bundled-es-modules/pdfjs-dist/build"
+          cp ./node_modules/@bundled-es-modules/pdfjs-dist/build/pdf.worker.js ./dist/_nuxt/node_modules/@bundled-es-modules/pdfjs-dist/build/pdf.worker.js
+
       - name: Deploy page to GitHub-Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
