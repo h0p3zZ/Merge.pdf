@@ -38,16 +38,6 @@ let permutation: number[];
 watch(() => props.pdfData, pdfChanged);
 
 function drop(event: DragEvent, i: number) {
-    // let data = event.dataTransfer?.getData("originalPageNumber");
-    // if (data) {
-    //     const originalPageNumber = parseInt(data);
-    //     const originalPage = permutation[originalPageNumber - 1];
-    //     permutation[originalPageNumber - 1] = permutation[i - 1];
-    //     permutation[i - 1] = originalPage;
-    //     console.log(`dropped ${originalPage} at ${i}`);
-    //     renderPage(i);
-    //     renderPage(originalPageNumber);
-    // }
     dragleave(event);
     let data = event.dataTransfer?.getData("originalPageNumber");
     if (data) {
@@ -55,47 +45,17 @@ function drop(event: DragEvent, i: number) {
 
         if (originalPageNumber === i) return;
 
-        // move originalPageNumber to index i
-        // move rest of the pages in direction of i (up or down)
-
-        const diff = originalPageNumber < i ? -1 : +1;
-
-        // when i is smaller (further up the pagelist) diff is positive
-        // when i is bigger (further down the pagelist) diff is negative
-
-        console.log(`dropped ${originalPageNumber} at ${i}`);
-        let prev = permutation[i + 1];
-        permutation[i + 1] = permutation[originalPageNumber];
-        renderPage(i + 1);
-        let x = i;
-        let inbounds = true;
-        while (inbounds) {
-            const current = permutation[x];
-            permutation[x] = prev;
-            prev = current;
-            renderPage(x);
-
-            x += diff;
-            if (diff > 0) {
-                inbounds = (x < originalPageNumber);
-            } else {
-                inbounds = (x > originalPageNumber);
-            }
+        if (originalPageNumber < i) {
+            const temp = permutation[i];
+            permutation.copyWithin(originalPageNumber + 1, originalPageNumber, i);
+            permutation[originalPageNumber] = temp;
+            for (let x = originalPageNumber; x <= i; x++) renderPage(x);
+        } else {
+            const temp = permutation[originalPageNumber];
+            permutation.copyWithin(i + 1, i, originalPageNumber);
+            permutation[i] = temp;
+            for (let x = i; x <= originalPageNumber; x++) renderPage(x);
         }
-
-        permutation[originalPageNumber] = permutation[i];
-        renderPage(originalPageNumber);
-
-        // const originalPage = permutation[originalPageNumber - 1];
-
-        // let x = originalPageNumber;
-
-
-        // permutation[originalPageNumber - 1] = permutation[i - 1];
-        // permutation[i - 1] = originalPage;
-        // console.log(`dropped ${originalPage} at ${i}`);
-        // renderPage(i);
-        // renderPage(originalPageNumber);
     }
 }
 
