@@ -3,7 +3,7 @@
       <ImportPDF @change="importChanged"></ImportPDF>
       <ExportPDF :pdfData="pdfData"></ExportPDF>
     <ClientOnly placeholder="loading...">
-      <DisplayPDF :pdfData="pdfData"></DisplayPDF>
+      <DisplayPDF :pdfData="pdfData" @order-changed="orderChanged"></DisplayPDF>
     </ClientOnly>
   </div>
 </template>
@@ -13,5 +13,9 @@ const pdfData = ref<ArrayBuffer>(new ArrayBuffer(0));
 
 function importChanged(pdfD: ArrayBuffer) {
   pdfData.value = pdfD;
+}
+
+async function orderChanged(pdfD: Promise<Uint8Array>) {
+  pdfData.value = (await pdfD).buffer;
 }
 </script>

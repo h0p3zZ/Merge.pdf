@@ -30,6 +30,8 @@ const props = defineProps({
     },
 });
 
+const emit = defineEmits(['orderChanged']);
+
 const pdfData = computed(() => props.pdfData);
 const nrOfPages = ref<Number>();
 let doc: PDFDocumentProxy;
@@ -56,6 +58,8 @@ function drop(event: DragEvent, i: number) {
             permutation[i] = temp;
             for (let x = i; x <= originalPageNumber; x++) renderPage(x);
         }
+
+        // emit('orderChanged', doc.saveDocument());
     }
 }
 
