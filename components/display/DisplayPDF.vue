@@ -1,25 +1,25 @@
 <template>
     <div v-if="nrOfPages">
-        <!-- <DisplayPage v-for="i in nrOfPages" :pdfData="pdfData" :key="i" :index="1"></DisplayPage> -->
-        <div v-for="i in nrOfPages" @dragover.prevent @drop="drop($event, parseInt(i.toString()))">
+        <div v-for="i in nrOfPages" @dragover.prevent>
             <canvas :id="'page' + i" :draggable="true" @dragstart="drag($event, parseInt(i.toString()))"></canvas>
+            <div class="dropable" @drop="drop($event, parseInt(i.toString()))" @dragover.prevent
+             @dragenter="dragenter($event)" @dragleave="dragleave($event)"></div>
         </div>
     </div>
 </template>
-<style lang="css">
-#pageContainer {
-    position: absolute;
+<style scoped lang="css">
+.dropable {
+    height: 15px;
+    background-color: #CECECE;
 }
 
-/* #my-canvas {
-    border: 1px solid black;
-    direction: ltr;
-} */
+.dropable.dragover {
+    background-color: black;
+    width: 110%;
+}
 </style>
 <script setup lang="ts">
-import pdfjs, { PDFDocumentProxy, PDFPageProxy } from "@bundled-es-modules/pdfjs-dist/build/pdf";
-import viewer from "@bundled-es-modules/pdfjs-dist/web/pdf_viewer";
-import { PDFDocument, PDFPage } from "pdf-lib";
+import pdfjs, { PDFDocumentProxy } from "@bundled-es-modules/pdfjs-dist/build/pdf";
 
 pdfjs.GlobalWorkerOptions.workerSrc = "_nuxt/node_modules/@bundled-es-modules/pdfjs-dist/build/pdf.worker.js";
 
@@ -37,21 +37,65 @@ let permutation: number[];
 
 watch(() => props.pdfData, pdfChanged);
 
-onMounted(() => {
-
-    //pdfChanged();
-});
-
 function drop(event: DragEvent, i: number) {
+    // let data = event.dataTransfer?.getData("originalPageNumber");
+    // if (data) {
+    //     const originalPageNumber = parseInt(data);
+    //     const originalPage = permutation[originalPageNumber - 1];
+    //     permutation[originalPageNumber - 1] = permutation[i - 1];
+    //     permutation[i - 1] = originalPage;
+    //     console.log(`dropped ${originalPage} at ${i}`);
+    //     renderPage(i);
+    //     renderPage(originalPageNumber);
+    // }
+    dragleave(event);
     let data = event.dataTransfer?.getData("originalPageNumber");
     if (data) {
         const originalPageNumber = parseInt(data);
-        const originalPage = permutation[originalPageNumber - 1];
-        permutation[originalPageNumber - 1] = permutation[i - 1];
-        permutation[i - 1] = originalPage;
-        console.log(`dropped ${originalPage} at ${i}`);
-        renderPage(i);
+
+        if (originalPageNumber === i) return;
+
+        // move originalPageNumber to index i
+        // move rest of the pages in direction of i (up or down)
+
+        const diff = originalPageNumber < i ? -1 : +1;
+
+        // when i is smaller (further up the pagelist) diff is positive
+        // when i is bigger (further down the pagelist) diff is negative
+
+        console.log(`dropped ${originalPageNumber} at ${i}`);
+        let prev = permutation[i + 1];
+        permutation[i + 1] = permutation[originalPageNumber];
+        renderPage(i + 1);
+        let x = i;
+        let inbounds = true;
+        while (inbounds) {
+            const current = permutation[x];
+            permutation[x] = prev;
+            prev = current;
+            renderPage(x);
+
+            x += diff;
+            if (diff > 0) {
+                inbounds = (x < originalPageNumber);
+            } else {
+                inbounds = (x > originalPageNumber);
+            }
+        }
+
+        permutation[originalPageNumber] = permutation[i];
         renderPage(originalPageNumber);
+
+        // const originalPage = permutation[originalPageNumber - 1];
+
+        // let x = originalPageNumber;
+
+
+        // permutation[originalPageNumber - 1] = permutation[i - 1];
+        // permutation[i - 1] = originalPage;
+        // console.log(`dropped ${originalPage} at ${i}`);
+        // renderPage(i);
+        // renderPage(originalPageNumber);
     }
 }
 
@@ -60,49 +104,29 @@ function drag(event: DragEvent, i: number) {
     console.log(`dragged from ${i}`);
 }
 
+function dragenter(event: DragEvent) {
+    const div = event.target as HTMLDivElement;
+    div.classList.add('dragover');
+}
+
+function dragleave(event: DragEvent){
+    const div = event.target as HTMLDivElement;
+    div.classList.remove('dragover');
+}
 
 async function pdfChanged() {
-    // const tempPdf = new Uint8Array(new ArrayBuffer(pdfData.value.byteLength));
-    // tempPdf.set(new Uint8Array(pdfData.value));
-
     doc = await pdfjs.getDocument(pdfData.value).promise;
     nrOfPages.value = doc.numPages;
-    permutation = Array.from({ length: doc.numPages }, (_, index) => index + 1);
-
-    // for (let i = 1; i <= doc.numPages; i++) {
-    //     arr[i] = await doc.getPage(i);
-    // }
-
-    // pages.value = arr;
-
-    // const arr = new Array<ArrayBuffer>(doc.getPageCount());
-
-    // for (let i = 0; i < doc.getPageCount(); i++) {
-    //     const newDoc = await PDFDocument.create();
-    //     const copiedPages = await newDoc.copyPages(doc, [i]);
-    //     copiedPages.forEach((page) => newDoc.addPage(page));
-    //     //newDoc.addPage(copiedPages[0]);
-    //     const byteArray = await newDoc.save();
-    //     arr[i] = byteArray;
-    // }
-    // pagesData.value = arr;
+    permutation = Array.from({ length: doc.numPages + 1 }, (_, index) => index);
 
     // custom rendering
     for (let i = 1; i <= doc.numPages; i++) {
         renderPage(i);
     }
-    // const page1 = await doc.getPage(1);
-    // const viewport = page1.getViewport({ scale: 1 });
-    // const canvas = document.getElementById("my-canvas") as HTMLCanvasElement;
-    // const context = canvas.getContext("2d") as CanvasRenderingContext2D;
-    // canvas.height = viewport.height;
-    // canvas.width = viewport.width;
-    // console.log(`height: ${canvas.height}, width: ${canvas.width}`);
-    // await page1.render({ canvasContext: context, viewport: viewport }).promise;
 }
 
 async function renderPage(i: number) {
-    const page = await doc.getPage(permutation[i - 1]);
+    const page = await doc.getPage(permutation[i]);
     const viewport = page.getViewport({ scale: 1 });
     const canvas = document.getElementById(`page${i}`) as HTMLCanvasElement;
     const context = canvas.getContext("2d") as CanvasRenderingContext2D;
