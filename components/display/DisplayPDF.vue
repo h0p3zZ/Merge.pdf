@@ -19,7 +19,8 @@
 }
 </style>
 <script setup lang="ts">
-import pdfjs, { PDFDocumentProxy } from "@bundled-es-modules/pdfjs-dist/build/pdf";
+import pdfjs, { PDFDocumentProxy } from "@bundled-es-modules/pdfjs-dist/build/pdf"; 
+import { PDFDocument } from 'pdf-lib';
 
 pdfjs.GlobalWorkerOptions.workerSrc = "_nuxt/node_modules/@bundled-es-modules/pdfjs-dist/build/pdf.worker.js";
 
@@ -47,10 +48,11 @@ function drop(event: DragEvent, i: number) {
 
         if (originalPageNumber === i) return;
 
+        console.log(`move ${originalPageNumber} to ${i}`);
         if (originalPageNumber < i) {
-            const temp = permutation[i];
-            permutation.copyWithin(originalPageNumber + 1, originalPageNumber, i);
-            permutation[originalPageNumber] = temp;
+            const temp = permutation[originalPageNumber];
+            permutation.copyWithin(originalPageNumber, originalPageNumber + 1, i);
+            permutation[i] = temp;
             for (let x = originalPageNumber; x <= i; x++) renderPage(x);
         } else {
             const temp = permutation[originalPageNumber];
@@ -59,8 +61,52 @@ function drop(event: DragEvent, i: number) {
             for (let x = i; x <= originalPageNumber; x++) renderPage(x);
         }
 
-        // emit('orderChanged', doc.saveDocument());
+        reorderDoc(event, i);
     }
+}
+
+async function reorderDoc(event: DragEvent, i: number) {
+
+    let data = event.dataTransfer?.getData("originalPageNumber");
+
+    if (data) {
+        const test = await doc.getData();
+        const tempPdf = new Uint8Array(new ArrayBuffer(test.byteLength));
+        tempPdf.set(new Uint8Array(test));
+        
+        const d = await PDFDocument.load(tempPdf);
+        
+        const pages = d.getPages();
+
+        const originalPageNumber = parseInt(data);
+
+        if (originalPageNumber === i) return;
+
+        if (originalPageNumber < i) {
+            const temp = pages[i];
+            pages.copyWithin(originalPageNumber + 1, originalPageNumber, i);
+            pages[originalPageNumber] = temp;
+            for (let x = 0; x < pages.length; x++) {
+                d.removePage(x);
+                d.insertPage(x, pages[x]);
+            }
+        } else {
+            const temp = pages[originalPageNumber];
+            pages.copyWithin(i + 1, i, originalPageNumber);
+            pages[i] = temp;
+            for (let x = 0; x < pages.length; x++) {
+                d.removePage(x);
+                d.insertPage(x, pages[x]);
+            }
+        }
+
+        console.log(d);
+
+        //emit('orderChanged', d.save());
+    }
+
+    // console.log(await pdfjs.getDocument(test).promise);
+    
 }
 
 function drag(event: DragEvent, i: number) {
@@ -79,7 +125,10 @@ function dragleave(event: DragEvent){
 }
 
 async function pdfChanged() {
-    doc = await pdfjs.getDocument(pdfData.value).promise;
+    const tempPdf = new Uint8Array(new ArrayBuffer(pdfData.value.byteLength));
+    tempPdf.set(new Uint8Array(pdfData.value));
+
+    doc = await pdfjs.getDocument(tempPdf).promise;
     nrOfPages.value = doc.numPages;
     permutation = Array.from({ length: doc.numPages + 1 }, (_, index) => index);
 
