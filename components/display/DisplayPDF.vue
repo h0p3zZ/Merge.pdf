@@ -61,52 +61,24 @@ function drop(event: DragEvent, i: number) {
             for (let x = i; x <= originalPageNumber; x++) renderPage(x);
         }
 
-        reorderDoc(event, i);
+        reorderDoc(permutation);
     }
 }
 
-async function reorderDoc(event: DragEvent, i: number) {
-
-    let data = event.dataTransfer?.getData("originalPageNumber");
-
-    if (data) {
-        const test = await doc.getData();
-        const tempPdf = new Uint8Array(new ArrayBuffer(test.byteLength));
-        tempPdf.set(new Uint8Array(test));
-        
-        const d = await PDFDocument.load(tempPdf);
-        
-        const pages = d.getPages();
-
-        const originalPageNumber = parseInt(data);
-
-        if (originalPageNumber === i) return;
-
-        if (originalPageNumber < i) {
-            const temp = pages[i];
-            pages.copyWithin(originalPageNumber + 1, originalPageNumber, i);
-            pages[originalPageNumber] = temp;
-            for (let x = 0; x < pages.length; x++) {
-                d.removePage(x);
-                d.insertPage(x, pages[x]);
-            }
-        } else {
-            const temp = pages[originalPageNumber];
-            pages.copyWithin(i + 1, i, originalPageNumber);
-            pages[i] = temp;
-            for (let x = 0; x < pages.length; x++) {
-                d.removePage(x);
-                d.insertPage(x, pages[x]);
-            }
-        }
-
-        console.log(d);
-
-        //emit('orderChanged', d.save());
+async function reorderDoc(permutation: number[]) {
+    const test = await doc.getData();
+    const tempPdf = new Uint8Array(new ArrayBuffer(test.byteLength));
+    tempPdf.set(new Uint8Array(test));
+    
+    const d = await PDFDocument.load(tempPdf);
+    const pages = d.getPages();
+    
+    for (let i = 0; i < permutation.length - 1; i++) {
+        d.removePage(i);
+        d.insertPage(i, pages[permutation[i + 1] - 1]);
     }
 
-    // console.log(await pdfjs.getDocument(test).promise);
-    
+    emit('orderChanged', await d.save());
 }
 
 function drag(event: DragEvent, i: number) {
