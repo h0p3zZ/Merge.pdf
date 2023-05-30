@@ -1,13 +1,50 @@
 <template>
     <div v-if="nrOfPages">
-        <div v-for="i in nrOfPages" @dragover.prevent>
-            <canvas :id="'page' + i" :draggable="true" @dragstart="drag($event, parseInt(i.toString()))"></canvas>
+        <div v-for="i in nrOfPages" @dragover.prevent @mouseenter="showDelete($event, parseInt(i.toString()))" 
+            @mouseleave="hideDelete($event, parseInt(i.toString()))" class="container">
+            <canvas :id="'page' + i" :draggable="true" @dragstart="drag($event, parseInt(i.toString()))"
+                class="page">
+            </canvas>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"
+            :id="'deletepage' + i" class="deletion"
+            @mouseenter="mouseenterdelete($event)" @mouseleave="mouseleavedelete($event)"
+            @click="deletePage($event, parseInt(i.toString()))">
+                <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z"/>
+                <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z"/>
+            </svg>
             <div class="dropable" @drop="drop($event, parseInt(i.toString()))" @dragover.prevent
              @dragenter="dragenter($event)" @dragleave="dragleave($event)"></div>
         </div>
     </div>
 </template>
 <style scoped lang="css">
+
+.container{
+    position: relative;
+}
+
+.page{
+    position: relative;
+    left: 25%;
+    align-self: center;
+    width: 50%;
+}
+
+.deletion{
+    fill: rgb(234, 142, 142);
+    width: 40px;
+    height: 40px;
+    margin-right: 0px;
+    position: absolute;
+    top: 1%;
+    left: 25%;
+    visibility: hidden;
+}
+
+.deletion.dragover{
+    fill: #ff0000;
+}
+
 .dropable {
     height: 15px;
     background-color: #CECECE;
@@ -19,8 +56,8 @@
 }
 </style>
 <script setup lang="ts">
-import pdfjs, { PDFDocumentProxy } from "@bundled-es-modules/pdfjs-dist/build/pdf"; 
-import { PDFDocument } from 'pdf-lib';
+import pdfjs, { PDFDateString, PDFDocumentProxy } from "@bundled-es-modules/pdfjs-dist/build/pdf"; 
+import { PDFAcroListBox, PDFDocument } from 'pdf-lib';
 
 pdfjs.GlobalWorkerOptions.workerSrc = "_nuxt/node_modules/@bundled-es-modules/pdfjs-dist/build/pdf.worker.js";
 
@@ -31,7 +68,7 @@ const props = defineProps({
     },
 });
 
-const emit = defineEmits(['orderChanged']);
+const emit = defineEmits(['orderChanged', 'deletedPage']);
 
 const pdfData = computed(() => props.pdfData);
 const nrOfPages = ref<Number>();
@@ -63,6 +100,20 @@ function drop(event: DragEvent, i: number) {
 
         reorderDoc(permutation);
     }
+
+    emit('orderChanged', await d.save());
+}
+
+async function showDelete(event: Event, i: number){
+    console.log("mouse enter on page " + i);
+    const del = document.getElementById(`deletepage${i}`) as HTMLDivElement;
+    del.style.visibility = 'visible';
+}
+
+async function hideDelete(event: Event, i: number){
+    console.log("mouse leave on page " + i);
+    const del = document.getElementById(`deletepage${i}`) as HTMLDivElement;
+    del.style.visibility = 'hidden';
 }
 
 async function reorderDoc(permutation: number[]) {
@@ -96,6 +147,22 @@ function dragleave(event: DragEvent){
     div.classList.remove('dragover');
 }
 
+function mouseenterdelete(event: Event){
+    const div = event.target as HTMLDivElement;
+    div.classList.add('dragover');
+}
+
+function mouseleavedelete(event: Event){
+    const div = event.target as HTMLDivElement;
+    div.classList.remove('dragover');
+}
+
+async function deletePage(event: Event, i: number){
+    const pdfDoc = await PDFDocument.load(pdfData.value);
+    pdfDoc.removePage(i - 1);
+    emit('deletedPage', await pdfDoc.save());
+}
+
 async function pdfChanged() {
     const tempPdf = new Uint8Array(new ArrayBuffer(pdfData.value.byteLength));
     tempPdf.set(new Uint8Array(pdfData.value));
@@ -103,6 +170,7 @@ async function pdfChanged() {
     doc = await pdfjs.getDocument(tempPdf).promise;
     nrOfPages.value = doc.numPages;
     permutation = Array.from({ length: doc.numPages + 1 }, (_, index) => index);
+   
 
     // custom rendering
     for (let i = 1; i <= doc.numPages; i++) {

@@ -3,7 +3,8 @@
       <ImportPDF @change="importChanged"></ImportPDF>
       <ExportPDF :pdfData="pdfData"></ExportPDF>
     <ClientOnly placeholder="loading...">
-      <DisplayPDF :pdfData="pdfData" @order-changed="orderChanged"></DisplayPDF>
+      <DisplayPDF :pdfData="pdfData" @order-changed="orderChanged"
+        @deletedPage="pageDeleted"></DisplayPDF>
     </ClientOnly>
   </div>
 </template>
@@ -16,6 +17,10 @@ function importChanged(pdfD: ArrayBuffer) {
 }
 
 async function orderChanged(pdfD: Promise<Uint8Array>) {
+  pdfData.value = (await pdfD).buffer;
+}
+
+async function pageDeleted(pdfD: Promise<Uint8Array>){
   pdfData.value = (await pdfD).buffer;
 }
 </script>
