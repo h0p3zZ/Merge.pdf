@@ -100,6 +100,8 @@ function drop(event: DragEvent, i: number) {
 
         reorderDoc(permutation);
     }
+
+    emit('orderChanged', await d.save());
 }
 
 async function showDelete(event: Event, i: number){
@@ -168,7 +170,7 @@ async function pdfChanged() {
     doc = await pdfjs.getDocument(tempPdf).promise;
     nrOfPages.value = doc.numPages;
     permutation = Array.from({ length: doc.numPages + 1 }, (_, index) => index);
-    
+   
 
     // custom rendering
     for (let i = 1; i <= doc.numPages; i++) {
