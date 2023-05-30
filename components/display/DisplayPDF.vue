@@ -1,27 +1,48 @@
 <template>
     <div v-if="nrOfPages">
         <div v-for="i in nrOfPages" @dragover.prevent @mouseenter="showDelete($event, parseInt(i.toString()))" 
-            @mouseleave="hideDelete($event, parseInt(i.toString()))">
-            <canvas :id="'page' + i" :draggable="true" @dragstart="drag($event, parseInt(i.toString()))">
+            @mouseleave="hideDelete($event, parseInt(i.toString()))" class="container">
+            <canvas :id="'page' + i" :draggable="true" @dragstart="drag($event, parseInt(i.toString()))"
+                class="page">
             </canvas>
-            <div :id="'deletepage' + i" class="deletion" @drop="dropDelete($event, parseInt(i.toString()))" @dragover.prevent
-                @mouseenter="mouseenterdelete($event)" @mouseleave="mouseleavedelete($event)"
-                @click="deletePage($event, parseInt(i.toString()))"></div>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"
+            :id="'deletepage' + i" class="deletion"
+            @mouseenter="mouseenterdelete($event)" @mouseleave="mouseleavedelete($event)"
+            @click="deletePage($event, parseInt(i.toString()))">
+                <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z"/>
+                <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z"/>
+            </svg>
             <div class="dropable" @drop="drop($event, parseInt(i.toString()))" @dragover.prevent
              @dragenter="dragenter($event)" @dragleave="dragleave($event)"></div>
         </div>
     </div>
 </template>
 <style scoped lang="css">
+
+.container{
+    position: relative;
+}
+
+.page{
+    position: relative;
+    left: 25%;
+    align-self: center;
+    width: 50%;
+}
+
 .deletion{
-    background-color: #e17575;
-    width: 20%;
-    height: 15px;
+    fill: rgb(234, 142, 142);
+    width: 40px;
+    height: 40px;
     margin-right: 0px;
+    position: absolute;
+    top: 1%;
+    left: 25%;
+    visibility: hidden;
 }
 
 .deletion.dragover{
-    background-color: #ff0000;
+    fill: #ff0000;
 }
 
 .dropable {
