@@ -3,7 +3,7 @@
         <div v-for="i in nrOfPages" @dragover.prevent>
             <canvas :id="'page' + i" :draggable="true" @dragstart="drag($event, parseInt(i.toString()))"></canvas>
             <div class="dropable" @drop="drop($event, parseInt(i.toString()))" @dragover.prevent
-             @dragenter="dragenter($event)" @dragleave="dragleave($event)"></div>
+                @dragenter="dragenter($event)" @dragleave="dragleave($event)"></div>
         </div>
     </div>
 </template>
@@ -19,26 +19,31 @@
 }
 </style>
 <script setup lang="ts">
-import pdfjs, { PDFDocumentProxy } from "@bundled-es-modules/pdfjs-dist/build/pdf"; 
+import pdfjs, { PDFDocumentProxy } from "@bundled-es-modules/pdfjs-dist/build/pdf";
 import { PDFDocument } from 'pdf-lib';
 
 pdfjs.GlobalWorkerOptions.workerSrc = "_nuxt/node_modules/@bundled-es-modules/pdfjs-dist/build/pdf.worker.js";
 
 const props = defineProps({
-    pdfData: {
-        type: ArrayBuffer,
-        required: true,
+    document: {
+        // type: PdfDoc,
+        // required: true,
+        type: null
     },
+    triggerRefresh: {
+        type: Number,
+    }
 });
 
 const emit = defineEmits(['orderChanged']);
 
-const pdfData = computed(() => props.pdfData);
+const pdfDoc = computed(() => props.document as PDFDocument);
 const nrOfPages = ref<Number>();
 let doc: PDFDocumentProxy;
 let permutation: number[];
 
-watch(() => props.pdfData, pdfChanged);
+watch(() => props.document, pdfChanged);
+watch(() => props.triggerRefresh, pdfChanged);
 
 function drop(event: DragEvent, i: number) {
     dragleave(event);
@@ -66,19 +71,15 @@ function drop(event: DragEvent, i: number) {
 }
 
 async function reorderDoc(permutation: number[]) {
-    const test = await doc.getData();
-    const tempPdf = new Uint8Array(new ArrayBuffer(test.byteLength));
-    tempPdf.set(new Uint8Array(test));
-    
-    const d = await PDFDocument.load(tempPdf);
+    const d = pdfDoc.value;
     const pages = d.getPages();
-    
+
     for (let i = 0; i < permutation.length - 1; i++) {
         d.removePage(i);
         d.insertPage(i, pages[permutation[i + 1] - 1]);
     }
 
-    emit('orderChanged', await d.save());
+    emit('orderChanged', d);
 }
 
 function drag(event: DragEvent, i: number) {
@@ -91,16 +92,13 @@ function dragenter(event: DragEvent) {
     div.classList.add('dragover');
 }
 
-function dragleave(event: DragEvent){
+function dragleave(event: DragEvent) {
     const div = event.target as HTMLDivElement;
     div.classList.remove('dragover');
 }
 
 async function pdfChanged() {
-    const tempPdf = new Uint8Array(new ArrayBuffer(pdfData.value.byteLength));
-    tempPdf.set(new Uint8Array(pdfData.value));
-
-    doc = await pdfjs.getDocument(tempPdf).promise;
+    doc = await pdfjs.getDocument(await pdfDoc.value.save()).promise;
     nrOfPages.value = doc.numPages;
     permutation = Array.from({ length: doc.numPages + 1 }, (_, index) => index);
 
