@@ -33,8 +33,8 @@ async function onFileChanged($event: Event): Promise<void> {
     const target = $event.target as HTMLInputElement;
     if (target && target.files) {
         const bytes = await readFileAsync(target.files[0]);
-
         if (bytes) emit('change', bytes);
+        target.value = "";
     }
 }
 </script>
