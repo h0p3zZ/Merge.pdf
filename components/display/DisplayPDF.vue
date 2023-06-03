@@ -63,13 +63,11 @@ pdfjs.GlobalWorkerOptions.workerSrc = "_nuxt/node_modules/@bundled-es-modules/pd
 
 const props = defineProps({
     document: {
-        // type: PdfDoc,
-        // required: true,
-        type: null
+        type: Object,
     },
     triggerRefresh: {
         type: Number,
-    }
+    },
 });
 
 const emit = defineEmits(['orderChanged', 'deletedPage']);
@@ -108,13 +106,11 @@ function drop(event: DragEvent, i: number) {
 }
 
 async function showDelete(event: Event, i: number){
-    console.log("mouse enter on page " + i);
     const del = document.getElementById(`deletepage${i}`) as HTMLDivElement;
     del.style.visibility = 'visible';
 }
 
 async function hideDelete(event: Event, i: number){
-    console.log("mouse leave on page " + i);
     const del = document.getElementById(`deletepage${i}`) as HTMLDivElement;
     del.style.visibility = 'hidden';
 }
