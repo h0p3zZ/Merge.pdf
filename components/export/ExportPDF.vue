@@ -13,7 +13,7 @@
                         ...
                         - each [] is a seperate file</p>
                     <p>Leaving it blank will export the whole pdf as a single file.</p>
-                    <input :value=exportString hint="[startIndex-endIndex, singlepageIndex, ...], ..." type="text">
+                    <input @input="exportStringChanged" class="form-control" placeholder="[startIndex-endIndex, singlepageIndex, ...], ..." type="text">
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -25,7 +25,7 @@
 </template>
 
 <script setup lang="ts">
-import { PDFDocument, PDFPage, numberToString } from 'pdf-lib';
+import { PDFDocument } from 'pdf-lib';
 
 //#region props and emits
 const props = defineProps({
@@ -48,15 +48,16 @@ watch(() => props.pdfDoc, (newDoc) => {
     } else {
         disabled.value = true;
     }
-})
+});
+
+function exportStringChanged(event: InputEvent) {
+    const inputElement = event.target as HTMLInputElement;
+    exportString.value = inputElement.value;
+}
 
 async function saveFile() {
     const links: HTMLAnchorElement[] = [];
     const documents: PDFDocument[] = [];
-
-    // TODO: exportString not updated in input-element of save-dialog
-    exportString.value = "[1-3],[4],[5]";
-    console.log("exportString: " + exportString.value);
 
     if (exportString.value === '') {
         const link = document.createElement('a');
