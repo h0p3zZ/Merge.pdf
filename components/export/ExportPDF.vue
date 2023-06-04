@@ -50,7 +50,7 @@ watch(() => props.pdfDoc, (newDoc) => {
     }
 });
 
-function exportStringChanged(event: InputEvent) {
+function exportStringChanged(event: Event) {
     const inputElement = event.target as HTMLInputElement;
     exportString.value = inputElement.value;
 }
