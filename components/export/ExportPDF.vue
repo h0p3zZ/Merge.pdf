@@ -13,7 +13,7 @@
                         ...
                         - each [] is a seperate file</p>
                     <p>Leaving it blank will export the whole pdf as a single file.</p>
-                    <input :value="exportString" hint="[startIndex-endIndex, singlepageIndex, ...], ..." type="text">
+                    <input :value=exportString hint="[startIndex-endIndex, singlepageIndex, ...], ..." type="text">
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -25,7 +25,7 @@
 </template>
 
 <script setup lang="ts">
-import { PDFDocument } from 'pdf-lib';
+import { PDFDocument, PDFPage, numberToString } from 'pdf-lib';
 
 //#region props and emits
 const props = defineProps({
@@ -54,6 +54,10 @@ async function saveFile() {
     const links: HTMLAnchorElement[] = [];
     const documents: PDFDocument[] = [];
 
+    // TODO: exportString not updated in input-element of save-dialog
+    exportString.value = "[1-3],[4],[5]";
+    console.log("exportString: " + exportString.value);
+
     if (exportString.value === '') {
         const link = document.createElement('a');
 
@@ -69,20 +73,67 @@ async function saveFile() {
 
         return;
     }
+    
+    let startIndex = exportString.value.indexOf('[') + 1;
+    let endIndex = exportString.value.indexOf(']');
+    let docIndex: number = 0;
 
-    // ToDo: import ExportString splitting here.
+    while(endIndex != -1 || startIndex != 0){
+        if(endIndex === -1) endIndex = exportString.value.length;
+        let prevEndIndex = endIndex;
+
+        console.log("startIndex: " + startIndex);
+        console.log("nextEndIndex: " + endIndex);
+
+        let pageString = exportString.value.substring(startIndex, endIndex);
+        let arr = pageString.split('-');
+        let pageStart = parseInt(arr[0]);
+        let pageEnd = parseInt(arr[1]);
+
+        console.log("pageStart: " + pageStart);
+        console.log("pageEnd: " + pageEnd);
+
+        documents[docIndex] = await PDFDocument.create();
+        links[docIndex] = document.createElement('a');
+        
+        const copyIDs: number[] = [];
+
+        // for the case user enters single digit in between []-brackets
+        if(!isNaN(pageEnd)){
+            for(let i = pageStart - 1; i < pageEnd; i++) {
+                copyIDs[i + 1 - pageStart] = i;
+                console.log("added page " + i);
+            }
+        } else{
+            copyIDs[copyIDs.length] = pageStart - 1;
+            console.log("added page " + (pageStart - 1));
+        }
+        
+        const copiedPages = await documents[docIndex].copyPages(currentDoc, copyIDs);
+        
+        copiedPages.forEach((page) =>{
+            documents[docIndex].addPage(page);
+        })
+
+        docIndex++;
+        endIndex = exportString.value.indexOf(']', prevEndIndex + 1);
+        startIndex = exportString.value.indexOf('[', prevEndIndex + 1) + 1;
+
+        console.log("new start index: " + startIndex);
+        console.log("new end index: " + endIndex);
+    }
 
     links.forEach(async (link, index) => {
-        link.download = `merged(${index + 1}).pdf`;
-        document.body.append(link);
-        link.click();
-
-        link.remove();
-        setTimeout(() => URL.revokeObjectURL(link.href), 7000);
-
         const byteArray = await documents[index].save();
 
+        link.download = `merged(${index + 1}).pdf`;
         link.href = URL.createObjectURL(new File([byteArray], "merged.pdf"));
+        document.body.append(link);
+
+        link.click();
+        link.remove();
+
+        setTimeout(() => URL.revokeObjectURL(link.href), 7000);
     });
 
     exportString.value = '';
