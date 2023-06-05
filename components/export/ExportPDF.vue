@@ -13,7 +13,7 @@
                         ...
                         - each [] is a seperate file</p>
                     <p>Leaving it blank will export the whole pdf as a single file.</p>
-                    <input @input="exportStringChanged" class="form-control" placeholder="[startIndex-endIndex, singlepageIndex, ...], ..." type="text">
+                    <input v-model="exportString" class="form-control" placeholder="[startIndex-endIndex, singlepageIndex, ...], ..." type="text">
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -49,11 +49,6 @@ watch(() => props.pdfDoc, (newDoc) => {
         disabled.value = true;
     }
 });
-
-function exportStringChanged(event: Event) {
-    const inputElement = event.target as HTMLInputElement;
-    exportString.value = inputElement.value;
-}
 
 async function saveFile() {
     const links: HTMLAnchorElement[] = [];
