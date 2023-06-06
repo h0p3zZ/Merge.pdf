@@ -108,13 +108,13 @@ function drop(event: DragEvent, i: number) {
 }
 
 async function showDelete(event: Event, i: number){
-    console.log("mouse enter on page " + i);
+    // console.log("mouse enter on page " + i);
     const del = document.getElementById(`deletepage${i}`) as HTMLDivElement;
     del.style.visibility = 'visible';
 }
 
 async function hideDelete(event: Event, i: number){
-    console.log("mouse leave on page " + i);
+    // console.log("mouse leave on page " + i);
     const del = document.getElementById(`deletepage${i}`) as HTMLDivElement;
     del.style.visibility = 'hidden';
 }

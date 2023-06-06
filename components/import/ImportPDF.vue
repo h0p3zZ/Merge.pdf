@@ -1,39 +1,33 @@
 <template>
     <div class="container-fluid">
         <div class="mb-3">
-            <label for="file" class="form-label">{{ buttonName }}</label>
-            <input type="file" name="file" class="btn btn-primary form-control" @change="onFileChanged" accept=".pdf" />
+            <label for="file" class="form-label">{{ props.buttonName }}</label>
+            <input type="file" name="file" class="btn btn-primary form-control" @change="onFileChanged"
+                :accept="props.acceptedMimeTypes" value=""/>
         </div>
     </div>
 </template>
 <style lang="css"></style>
 <script setup lang="ts">
+import { LoadedFile } from './loadedFile';
 
 const emit = defineEmits(['change']);
 const props = defineProps({
     buttonName: {
         type: String,
-        required: false,
+        required: true,
     },
+    acceptedMimeTypes: {
+        type: String,
+        required: true,
+    }
 });
-const buttonName = props.buttonName ?? 'Import file'
-
-function readFileAsync(file: File): Promise<ArrayBuffer | null> {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-            resolve(reader.result as (ArrayBuffer | null));
-        };
-        reader.onerror = reject;
-        reader.readAsArrayBuffer(file);
-    });
-}
 
 async function onFileChanged($event: Event): Promise<void> {
     const target = $event.target as HTMLInputElement;
     if (target && target.files) {
-        const bytes = await readFileAsync(target.files[0]);
-        if (bytes) emit('change', bytes);
+        const file = new LoadedFile(target.files[0]);
+        if (await file.getBytesAsync()) emit('change', file);
         target.value = "";
     }
 }
