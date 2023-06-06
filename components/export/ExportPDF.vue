@@ -26,6 +26,7 @@
 
 <script setup lang="ts">
 import { PDFDocument } from 'pdf-lib';
+import { exportPDF } from '~/methods/export/exportPDF';
 
 //#region props and emits
 const props = defineProps({
@@ -38,7 +39,7 @@ const props = defineProps({
 let currentDoc: PDFDocument;
 const disabled = ref(true);
 
-const exportString = ref<String>('');
+const exportString = ref<string>('');
 
 watch(() => props.pdfDoc, (newDoc) => {
     const newData = newDoc as PDFDocument;
@@ -51,87 +52,7 @@ watch(() => props.pdfDoc, (newDoc) => {
 });
 
 async function saveFile() {
-    const links: HTMLAnchorElement[] = [];
-    const documents: PDFDocument[] = [];
-
-    if (exportString.value === '') {
-        const link = document.createElement('a');
-
-        const byteArray = await currentDoc.save();
-
-        link.download = "merged.pdf";
-        link.href = URL.createObjectURL(new File([byteArray], "merged.pdf"));
-        document.body.append(link);
-        
-        link.click();
-        link.remove();
-        setTimeout(() => URL.revokeObjectURL(link.href), 7000);
-
-        return;
-    }
-    
-    let startIndex = exportString.value.indexOf('[') + 1;
-    let endIndex = exportString.value.indexOf(']');
-    let docIndex: number = 0;
-
-    while(endIndex != -1 || startIndex != 0){
-        if(endIndex === -1) endIndex = exportString.value.length;
-        let prevEndIndex = endIndex;
-
-        console.log("startIndex: " + startIndex);
-        console.log("nextEndIndex: " + endIndex);
-
-        let pageString = exportString.value.substring(startIndex, endIndex);
-        let arr = pageString.split('-');
-        let pageStart = parseInt(arr[0]);
-        let pageEnd = parseInt(arr[1]);
-
-        console.log("pageStart: " + pageStart);
-        console.log("pageEnd: " + pageEnd);
-
-        documents[docIndex] = await PDFDocument.create();
-        links[docIndex] = document.createElement('a');
-        
-        const copyIDs: number[] = [];
-
-        // for the case user enters single digit in between []-brackets
-        if(!isNaN(pageEnd)){
-            for(let i = pageStart - 1; i < pageEnd; i++) {
-                copyIDs[i + 1 - pageStart] = i;
-                console.log("added page " + i);
-            }
-        } else{
-            copyIDs[copyIDs.length] = pageStart - 1;
-            console.log("added page " + (pageStart - 1));
-        }
-        
-        const copiedPages = await documents[docIndex].copyPages(currentDoc, copyIDs);
-        
-        copiedPages.forEach((page) =>{
-            documents[docIndex].addPage(page);
-        })
-
-        docIndex++;
-        endIndex = exportString.value.indexOf(']', prevEndIndex + 1);
-        startIndex = exportString.value.indexOf('[', prevEndIndex + 1) + 1;
-
-        console.log("new start index: " + startIndex);
-        console.log("new end index: " + endIndex);
-    }
-
-    links.forEach(async (link, index) => {
-        const byteArray = await documents[index].save();
-
-        link.download = `merged(${index + 1}).pdf`;
-        link.href = URL.createObjectURL(new File([byteArray], "merged.pdf"));
-        document.body.append(link);
-
-        link.click();
-        link.remove();
-
-        setTimeout(() => URL.revokeObjectURL(link.href), 7000);
-    });
-
-    exportString.value = '';
+    const exportValid: boolean = await exportPDF(exportString.value, currentDoc);
+    if (exportValid) exportString.value = '';
 }
 </script>
