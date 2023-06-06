@@ -9,11 +9,10 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <p>Type the files you want to export in the format [startIndex-endIndex, singlepageIndex, ...], [...],
-                        ...
-                        - each [] is a seperate file</p>
+                    <p>Type the files you want to export in the format [startIndex-endIndex, singlepageIndex, etc.], [etc.], etc.
+                        - each [] is a seperate file and for ranges both startIndex and endIndex are included</p>
                     <p>Leaving it blank will export the whole pdf as a single file.</p>
-                    <input v-model="exportString" class="form-control" placeholder="[startIndex-endIndex, singlepageIndex, ...], ..." type="text">
+                    <input v-model="exportString" class="form-control" placeholder="[startIndex-endIndex, singlepageIndex, etc.], etc." type="text">
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
