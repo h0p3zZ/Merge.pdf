@@ -11,6 +11,12 @@ export async function exportPDF(exportString: string, pdfDoc: PDFDocument): Prom
     let startIndex = exportString.indexOf('[') + 1;
     let endIndex = exportString.indexOf(']');
 
+    // alert if export string contains no []-brackets
+    if(startIndex == -1 || endIndex == -1){
+        alert("invalid export string");
+        return false;
+    }
+
     for (let docIndex = 0; endIndex != -1 || startIndex != 0; docIndex++) {
         if (endIndex === -1) endIndex = exportString.length;
         let prevEndIndex = endIndex;
@@ -18,20 +24,21 @@ export async function exportPDF(exportString: string, pdfDoc: PDFDocument): Prom
         let pageString = exportString.substring(startIndex, endIndex);
         let arr = pageString.split('-');
         let pageStart = parseInt(arr[0]);
-        let pageEnd = parseInt(arr[1]);
+
+        // invalid input or index out of range
+        if(isNaN(pageStart) || pageStart >= pdfDoc.getPages().length){
+            alert("invalid export string");
+            return false;
+        }
+
+        let pageEnd = isNaN(parseInt(arr[1])) ? pageStart : parseInt(arr[1]);
 
         documents[docIndex] = await PDFDocument.create();
 
         const copyIDs: number[] = [];
 
-        // for the case user enters single digit in between []-brackets
-        if (!isNaN(pageEnd)) {
-            for (let i = pageStart - 1; i < pageEnd; i++) {
-                copyIDs[i + 1 - pageStart] = i;
-            }
-        } else {
-            copyIDs[copyIDs.length] = pageStart - 1;
-        }
+        for (let i = pageStart - 1; i < pageEnd; i++)
+            copyIDs[i + 1 - pageStart] = i;
 
         const copiedPages = await documents[docIndex].copyPages(pdfDoc, copyIDs);
 
@@ -50,8 +57,6 @@ export async function exportPDF(exportString: string, pdfDoc: PDFDocument): Prom
     }
     );
 
-    // ToDo return true if the export worked - else return false 
-    // Alternatively use custom Exceptionhandling-Errorhandling
     return true;
 };
 
