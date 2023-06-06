@@ -10,7 +10,7 @@
                 </div>
                 <div class="modal-body">
                     <p>Type the files you want to export in the format [startIndex-endIndex, singlepageIndex, etc.], [etc.], etc.
-                        - each [] is a seperate file and for ranges both startIndex and endIndex are included</p>
+                        - each [] is a seperate file and both startIndex and endIndex are included in ranges.</p>
                     <p>Leaving it blank will export the whole pdf as a single file.</p>
                     <input v-model="exportString" class="form-control" placeholder="[startIndex-endIndex, singlepageIndex, etc.], etc." type="text">
                 </div>
