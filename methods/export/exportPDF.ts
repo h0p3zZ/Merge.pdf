@@ -15,6 +15,7 @@ export async function exportPDF(exportString: string, pdfDoc: PDFDocument): Prom
     let endIndex = exportString.indexOf(']');
 
     if(startIndex == -1 || endIndex == -1){
+        alert("Invalid: export expression must be in between []-brackets");
         return false;
     }
 
