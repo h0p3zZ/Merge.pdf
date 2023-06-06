@@ -1,4 +1,5 @@
 import { PDFDocument } from "pdf-lib";
+import {PageEntry} from "./PageEntry";
 
 export async function exportPDF(exportString: string, pdfDoc: PDFDocument): Promise<boolean> {
     const documents: PDFDocument[] = [];
@@ -8,43 +9,38 @@ export async function exportPDF(exportString: string, pdfDoc: PDFDocument): Prom
         return true;
     }
 
+    exportString = exportString.replaceAll(" ", "");
+
     let startIndex = exportString.indexOf('[') + 1;
     let endIndex = exportString.indexOf(']');
 
-    // alert if export string contains no []-brackets
     if(startIndex == -1 || endIndex == -1){
-        alert("invalid export string");
         return false;
     }
 
     for (let docIndex = 0; endIndex != -1 || startIndex != 0; docIndex++) {
-        if (endIndex === -1) endIndex = exportString.length;
+        if (endIndex == -1) endIndex = exportString.length;
         let prevEndIndex = endIndex;
 
         let pageString = exportString.substring(startIndex, endIndex);
-        let arr = pageString.split('-');
-        let pageStart = parseInt(arr[0]);
-
-        // invalid input or index out of range
-        if(isNaN(pageStart) || pageStart >= pdfDoc.getPages().length){
-            alert("invalid export string");
-            return false;
-        }
-
-        let pageEnd = isNaN(parseInt(arr[1])) ? pageStart : parseInt(arr[1]);
+        let pageArr = pageString.split(',');
 
         documents[docIndex] = await PDFDocument.create();
 
-        const copyIDs: number[] = [];
+        for(let pageEntry of pageArr) {
+            let pageStart: number;
+            let pageEnd: number;
 
-        for (let i = pageStart - 1; i < pageEnd; i++)
-            copyIDs[i + 1 - pageStart] = i;
-
-        const copiedPages = await documents[docIndex].copyPages(pdfDoc, copyIDs);
-
-        copiedPages.forEach((page) => {
-            documents[docIndex].addPage(page);
-        })
+            try{
+                let entry = new PageEntry(pageEntry, pdfDoc.getPageCount());
+                pageStart = await entry.getPageStart();
+                pageEnd = await entry.getPageEnd();
+            } catch(e){
+                alert(e);
+                return false;
+            }
+            await addPages(documents, pdfDoc, docIndex, pageStart, pageEnd);
+        }
 
         endIndex = exportString.indexOf(']', prevEndIndex + 1);
         startIndex = exportString.indexOf('[', prevEndIndex + 1) + 1;
@@ -60,8 +56,20 @@ export async function exportPDF(exportString: string, pdfDoc: PDFDocument): Prom
     return true;
 };
 
-
 // private Helpers
+async function addPages(documents: PDFDocument[], pdfDoc: PDFDocument, docIndex: number, pageStart: number, pageEnd: number){
+    const copyIDs: number[] = [];
+
+    for (let i = pageStart - 1; i < pageEnd; i++){
+        copyIDs[i + 1 - pageStart] = i;
+    }
+
+    const copiedPages = await documents[docIndex].copyPages(pdfDoc, copyIDs);
+    copiedPages.forEach((page) => {
+        documents[docIndex].addPage(page);
+    })
+};
+
 async function downloadPDF(pdfDoc: PDFDocument, name?: string) {
     const link = document.createElement('a');
 
