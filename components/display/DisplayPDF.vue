@@ -153,13 +153,11 @@ function mouseleavedelete(event: Event){
 }
 
 async function deletePage(event: Event, i: number){
-    console.log(`delete page ${i} of ${pdfDoc.value.getPageCount()}`)
     pdfDoc.value.removePage(i - 1);
     emit('deletedPage', pdfDoc.value);
 }
 
 async function pdfChanged() {
-    console.log("pdf changed");
     doc = await pdfjs.getDocument(await pdfDoc.value.save()).promise;
     nrOfPages.value = doc.numPages;
     permutation = Array.from({ length: doc.numPages + 1 }, (_, index) => index);
