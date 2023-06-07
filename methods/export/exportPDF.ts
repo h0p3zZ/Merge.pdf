@@ -1,12 +1,12 @@
 import { PDFDocument } from "pdf-lib";
 import {PageEntry} from "./PageEntry";
 
-export async function exportPDF(exportString: string, pdfDoc: PDFDocument): Promise<boolean> {
+export async function exportPDF(exportString: string, pdfDoc: PDFDocument): Promise<string | null> {
     const documents: PDFDocument[] = [];
 
     if (exportString === '') {
         downloadPDF(pdfDoc);
-        return true;
+        return null;
     }
 
     exportString = exportString.replaceAll(" ", "");
@@ -15,8 +15,7 @@ export async function exportPDF(exportString: string, pdfDoc: PDFDocument): Prom
     let endIndex = exportString.indexOf(']');
 
     if(startIndex == -1 || endIndex == -1){
-        alert("Invalid: export expression must be in between []-brackets");
-        return false;
+        return "Invalid: export expression must be in between []-brackets";
     }
 
     for (let docIndex = 0; endIndex != -1 || startIndex != 0; docIndex++) {
@@ -32,13 +31,13 @@ export async function exportPDF(exportString: string, pdfDoc: PDFDocument): Prom
             let pageStart: number;
             let pageEnd: number;
 
-            try{
+            try {
                 let entry = new PageEntry(pageEntry, pdfDoc.getPageCount());
                 pageStart = await entry.getPageStart();
                 pageEnd = await entry.getPageEnd();
-            } catch(e){
-                alert(e);
-                return false;
+            } catch (e){
+                const error = e as Error;
+                return error.message;
             }
             await addPages(documents, pdfDoc, docIndex, pageStart, pageEnd);
         }
@@ -54,7 +53,7 @@ export async function exportPDF(exportString: string, pdfDoc: PDFDocument): Prom
     }
     );
 
-    return true;
+    return null;
 };
 
 // private Helpers

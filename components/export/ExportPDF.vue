@@ -1,29 +1,24 @@
 <template>
-    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal" :disabled="disabled">Save</button>
+    <button @click="showDialog = true" class="btn btn-primary" :disabled="disabled">Save</button>
 
-    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Save dialogue</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Type the files you want to export in the format [startIndex-endIndex, singlepageIndex, etc.], [etc.], etc.
+    <p-toast/>
+    <p-dialog :visible="showDialog" header="Save dialog" modal :closable="false" :draggable="false" style="width: 50vw">
+        <p>Type the files you want to export in the format [startIndex-endIndex, singlepageIndex, etc.], [etc.],
+                        etc.
                         - each [] is a seperate file and both startIndex and endIndex are included in ranges.</p>
                     <p>Leaving it blank will export the whole pdf as a single file.</p>
-                    <input v-model="exportString" class="form-control" placeholder="[startIndex-endIndex, singlepageIndex, etc.], etc." type="text">
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button @click="saveFile" type="button" class="btn btn-primary" data-bs-dismiss="modal">Save</button>
-                </div>
-            </div>
-        </div>
-    </div>
+                    <input v-model="exportString" class="form-control"
+                        placeholder="[startIndex-endIndex, singlepageIndex, etc.], etc." type="text">
+        <template #footer>
+            <button @click="showDialog = false" class="btn btn-secondary">Cancel</button>
+            <button @click="saveFile" class="btn btn-primary">Save</button>
+        </template>
+    </p-dialog>
 </template>
 
 <script setup lang="ts">
+import { useToast } from 'primevue/usetoast';
+
 import { PDFDocument } from 'pdf-lib';
 import { exportPDF } from '~/methods/export/exportPDF';
 
@@ -37,8 +32,10 @@ const props = defineProps({
 
 let currentDoc: PDFDocument;
 const disabled = ref(true);
-
+const showDialog = ref(false);
 const exportString = ref<string>('');
+
+const toastService = useToast();
 
 watch(() => props.pdfDoc, (newDoc) => {
     const newData = newDoc as PDFDocument;
@@ -51,7 +48,12 @@ watch(() => props.pdfDoc, (newDoc) => {
 });
 
 async function saveFile() {
-    const exportValid: boolean = await exportPDF(exportString.value, currentDoc);
-    if (exportValid) exportString.value = '';
+    const errorMessage: string | null = await exportPDF(exportString.value, currentDoc);
+    if (errorMessage) {
+        toastService.add({ severity: "error", summary: errorMessage, closable: true});
+        return;
+    }
+    exportString.value = '';
+    showDialog.value = false;
 }
 </script>
