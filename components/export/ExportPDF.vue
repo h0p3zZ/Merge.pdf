@@ -50,7 +50,7 @@ watch(() => props.pdfDoc, (newDoc) => {
 async function saveFile() {
     const errorMessage: string | null = await exportPDF(exportString.value, currentDoc);
     if (errorMessage) {
-        toastService.add({ severity: "error", summary: errorMessage, closable: true});
+        toastService.add({ severity: "error", summary: errorMessage, life: 7000, closable: true});
         return;
     }
     exportString.value = '';
