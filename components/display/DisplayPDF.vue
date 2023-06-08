@@ -1,21 +1,20 @@
 <template>
     <div v-if="nrOfPages">
         <!-- For loop to display all pages -->
-        <div v-for="i in nrOfPages" @dragover.prevent @mouseenter="showDelete($event, parseInt(i.toString()))"
-            @mouseleave="hideDelete($event, parseInt(i.toString()))" class="container">
-            <canvas :id="'page' + i" :draggable="true" @dragstart="drag($event, parseInt(i.toString()))" class="page">
+        <div v-for="i in nrOfPages" @dragover.prevent @mouseenter="showDelete" @mouseleave="hideDelete" class="container"
+            :key="'pageDiv' + i">
+            <canvas :id="'page' + i" :draggable="true" @dragstart="drag($event, +i)" class="page">
             </canvas>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" :id="'deletepage' + i" class="deletion"
-                @mouseenter="mouseenterdelete($event)" @mouseleave="mouseleavedelete($event)"
-                @click="deletePage($event, parseInt(i.toString()))">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="deletion" @mouseenter="mouseenterdelete"
+                @mouseleave="mouseleavedelete" @click="deletePage(+i)">
                 <path
                     d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z" />
                 <path
                     d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z" />
             </svg>
             <!-- Droppable is where the PDF page can be dropped to -->
-            <div class="dropable" @drop="drop($event, parseInt(i.toString()))" @dragover.prevent
-                @dragenter="dragenter($event)" @dragleave="dragleave($event)"></div>
+            <div class="dropable" @drop="drop($event, +i)" @dragover.prevent @dragenter="dragenter" @dragleave="dragleave">
+            </div>
         </div>
     </div>
 </template>
@@ -81,6 +80,12 @@ let permutation: number[];
 watch(() => props.pdfDoc, pdfChanged);
 watch(() => props.triggerRefresh, pdfChanged);
 
+/**
+ * @param event Event is the DragEvent that has the information of the Drag from the PDF page.
+ * @param index The index of the DIV-Element where the PDF page is dropped to.
+ * 
+ * @summary This is the function that is called after a PDF page has been dropped to any DIV-Element.
+ */
 function drop(event: DragEvent, index: number) {
     dragleave(event);
     let data = event.dataTransfer?.getData("originalPageNumber");
@@ -91,7 +96,7 @@ function drop(event: DragEvent, index: number) {
 
         if (originalPageNumber < index) {
             const temp = permutation[originalPageNumber];
-            permutation.copyWithin(originalPageNumber, originalPageNumber + 1, index);
+            permutation.copyWithin(originalPageNumber, originalPageNumber + 1, index + 1);
             permutation[index] = temp;
             for (let x = originalPageNumber; x <= index; x++) renderPage(x);
         } else {
@@ -105,13 +110,18 @@ function drop(event: DragEvent, index: number) {
     }
 }
 
-async function showDelete(event: Event, index: number) {
-    const del = document.getElementById(`deletepage${index}`) as HTMLDivElement;
+
+async function showDelete(event: Event) {
+    const div = event.target as HTMLDivElement;
+    const del = div.getElementsByClassName("deletion")[0] as SVGElement;
+    if (!del) return;
     del.style.visibility = 'visible';
 }
 
-async function hideDelete(event: Event, index: number) {
-    const del = document.getElementById(`deletepage${index}`) as HTMLDivElement;
+async function hideDelete(event: Event) {
+    const div = event.target as HTMLDivElement;
+    const del = div.getElementsByClassName("deletion")[0] as SVGElement;
+    if (!del) return;
     del.style.visibility = 'hidden';
 }
 
@@ -151,7 +161,7 @@ function mouseleavedelete(event: Event) {
     div.classList.remove('dragover');
 }
 
-async function deletePage(event: Event, index: number) {
+async function deletePage(index: number) {
     currentDoc.value.removePage(index - 1);
     emit('deletedPage', currentDoc.value);
 }
