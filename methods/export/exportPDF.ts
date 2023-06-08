@@ -39,7 +39,7 @@ export async function exportPDF(exportString: string, pdfDoc: PDFDocument): Prom
                 const error = e as Error;
                 return error.message;
             }
-            await addPages(documents, pdfDoc, docIndex, pageStart, pageEnd);
+            await addPages(documents[docIndex], pdfDoc, pageStart, pageEnd);
         }
 
         endIndex = exportString.indexOf(']', prevEndIndex + 1);
@@ -56,18 +56,26 @@ export async function exportPDF(exportString: string, pdfDoc: PDFDocument): Prom
     return null;
 };
 
-// private Helpers
-async function addPages(documents: PDFDocument[], pdfDoc: PDFDocument, docIndex: number, pageStart: number, pageEnd: number){
+/**
+ * 
+ * @param document Document were pages need to be attached.
+ * @param pdfDoc The current PDF Document that is shown in the GUI
+ * @param pageStart Startindex of the pages that need to be copied from @param pdfDoc to @param document
+ * @param pageEnd Endindex of the pages that need ot be copied from @param pdfDoc to @param document
+ * 
+ * @summary This helper function copies pages from the currend PDF Document (@param pdfDoc) to the @param document.
+ */
+async function addPages(document: PDFDocument, pdfDoc: PDFDocument, pageStart: number, pageEnd: number) {
     const copyIDs: number[] = [];
 
     for (let i = pageStart - 1; i < pageEnd; i++){
         copyIDs[i + 1 - pageStart] = i;
     }
 
-    const copiedPages = await documents[docIndex].copyPages(pdfDoc, copyIDs);
+    const copiedPages = await document.copyPages(pdfDoc, copyIDs);
     copiedPages.forEach((page) => {
-        documents[docIndex].addPage(page);
-    })
+        document.addPage(page);
+    });
 };
 
 async function downloadPDF(pdfDoc: PDFDocument, name?: string) {
