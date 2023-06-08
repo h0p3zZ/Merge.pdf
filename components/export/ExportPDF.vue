@@ -1,6 +1,7 @@
 <template>
     <button @click="showDialog = true" class="btn btn-primary" :disabled="disabled">Save</button>
 
+    <!-- Toast for the Toast Service - used for the error messages -->
     <p-toast/>
     <p-dialog :visible="showDialog" header="Save dialog" modal :closable="false" :draggable="false" style="width: 50vw">
         <p>Type the files you want to export in the format [startIndex-endIndex, singlepageIndex, etc.], [etc.],
@@ -37,6 +38,10 @@ const exportString = ref<string>('');
 
 const toastService = useToast();
 
+/**
+ * This watches for changes in the PDF document.
+ * Used to enable/disable the Save button (that opens the dialog).
+ */
 watch(() => props.pdfDoc, (newDoc) => {
     const newData = newDoc as PDFDocument;
     if (newData) {
@@ -47,6 +52,9 @@ watch(() => props.pdfDoc, (newDoc) => {
     }
 });
 
+/**
+ * This function is called when the click event on the Save button (of the dialog) is triggered.
+ */
 async function saveFile() {
     const errorMessage: string | null = await exportPDF(exportString.value, currentDoc);
     if (errorMessage) {
