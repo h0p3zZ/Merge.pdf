@@ -1,6 +1,13 @@
 import { PDFDocument } from "pdf-lib";
-import {PageEntry} from "./PageEntry";
+import { PageEntry } from "./PageEntry";
 
+/**
+ * @param exportString The export string that is parsed in the funciton.
+ * @param pdfDoc The Current PDF Document with all pages.
+ * @returns An Error-String if the @param exportString has a syntax issue else it returns null.
+ * 
+ * @summary This public function parses the export string in @param exportString and tries to Export a single (or multiple) PDF files from the given PDF document in @param pdfDoc.
+ */
 export async function exportPDF(exportString: string, pdfDoc: PDFDocument): Promise<string | null> {
     const documents: PDFDocument[] = [];
 
@@ -14,7 +21,7 @@ export async function exportPDF(exportString: string, pdfDoc: PDFDocument): Prom
     let startIndex = exportString.indexOf('[') + 1;
     let endIndex = exportString.indexOf(']');
 
-    if(startIndex == -1 || endIndex == -1){
+    if (startIndex == -1 || endIndex == -1) {
         return "Invalid: export expression must be in between []-brackets";
     }
 
@@ -27,7 +34,7 @@ export async function exportPDF(exportString: string, pdfDoc: PDFDocument): Prom
 
         documents[docIndex] = await PDFDocument.create();
 
-        for(let pageEntry of pageArr) {
+        for (let pageEntry of pageArr) {
             let pageStart: number;
             let pageEnd: number;
 
@@ -35,7 +42,7 @@ export async function exportPDF(exportString: string, pdfDoc: PDFDocument): Prom
                 let entry = new PageEntry(pageEntry, pdfDoc.getPageCount());
                 pageStart = await entry.getPageStart();
                 pageEnd = await entry.getPageEnd();
-            } catch (e){
+            } catch (e) {
                 const error = e as Error;
                 return error.message;
             }
@@ -57,7 +64,6 @@ export async function exportPDF(exportString: string, pdfDoc: PDFDocument): Prom
 };
 
 /**
- * 
  * @param document Document were pages need to be attached.
  * @param pdfDoc The current PDF Document that is shown in the GUI
  * @param pageStart Startindex of the pages that need to be copied from @param pdfDoc to @param document
@@ -68,7 +74,7 @@ export async function exportPDF(exportString: string, pdfDoc: PDFDocument): Prom
 async function addPages(document: PDFDocument, pdfDoc: PDFDocument, pageStart: number, pageEnd: number) {
     const copyIDs: number[] = [];
 
-    for (let i = pageStart - 1; i < pageEnd; i++){
+    for (let i = pageStart - 1; i < pageEnd; i++) {
         copyIDs[i + 1 - pageStart] = i;
     }
 
@@ -78,6 +84,13 @@ async function addPages(document: PDFDocument, pdfDoc: PDFDocument, pageStart: n
     });
 };
 
+/**
+ * @param pdfDoc The PDF document that is to be downloaded
+ * @param name Optional name for the PDF-file that is to be downloaded
+ * 
+ * @summary This helper function starts a download for the PDF-file in @param pdfDoc with the optional name.
+ * @default name The default name if no other name is provided is "merged.pdf".
+ */
 async function downloadPDF(pdfDoc: PDFDocument, name?: string) {
     const link = document.createElement('a');
 
