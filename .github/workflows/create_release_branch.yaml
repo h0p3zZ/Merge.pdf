@@ -39,6 +39,6 @@ jobs:
           git push
 
       - name: Create pull request to master
-        run: gh pr create --base master --reviewer h0p3zZ,AndreasLeeb,lgumpinger,MchiFab --title "Release ${{ steps.draft_release.outputs.tag_name }}" --body "This pull request has been created by the release CICD to create a release."
+        run: gh pr create --base master --reviewer h0p3zZ,AndreasLeeb,MchiFab --title "Release ${{ steps.draft_release.outputs.tag_name }}" --body "This pull request has been created by the release CICD to create a release."
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

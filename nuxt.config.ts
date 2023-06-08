@@ -5,6 +5,11 @@ export default defineNuxtConfig({
         baseURL: '/Merge.pdf/'
     },
     css: [
-        "~/node_modules/bootstrap/dist/css/bootstrap.min.css"
+        "bootstrap/dist/css/bootstrap.min.css",
+        "primevue/resources/themes/lara-light-blue/theme.css",
+        "primevue/resources/primevue.css",
     ],
+    build: {
+        transpile: ["primevue"],
+    },
 })
