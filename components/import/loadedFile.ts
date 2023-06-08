@@ -1,5 +1,8 @@
 import { readFileAsync } from "./fileUtils";
 
+/**
+ * TODO: AndiLeeb write documentation for this function
+ */
 export class LoadedFile {
     public constructor(file: File) {
         this.fileName = file.name;
