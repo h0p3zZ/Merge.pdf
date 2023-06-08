@@ -5,8 +5,7 @@
             :key="'pageDiv' + i">
             <canvas :id="'page' + i" :draggable="true" @dragstart="drag($event, +i)" class="page">
             </canvas>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="deletion" @mouseenter="mouseenterdelete"
-                @mouseleave="mouseleavedelete" @click="deletePage(+i)">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" class="deletion" @click="deletePage(+i)">
                 <path
                     d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z" />
                 <path
@@ -41,7 +40,7 @@
     visibility: hidden;
 }
 
-.deletion.dragover {
+.deletion:hover {
     fill: #ff0000;
 }
 
@@ -52,7 +51,6 @@
 
 .dropable.dragover {
     background-color: black;
-    width: 110%;
 }
 </style>
 <script setup lang="ts">
@@ -110,7 +108,11 @@ function drop(event: DragEvent, index: number) {
     }
 }
 
-
+/**
+ * @param event The Event that appears on mouse enter of a PDF page.
+ * 
+ * @summary Uses the target of the event to change visibility of the SVG to visible.
+ */
 async function showDelete(event: Event) {
     const div = event.target as HTMLDivElement;
     const del = div.getElementsByClassName("deletion")[0] as SVGElement;
@@ -118,6 +120,11 @@ async function showDelete(event: Event) {
     del.style.visibility = 'visible';
 }
 
+/**
+ * @param event The Event that appears on mouse leave of a PDF page.
+ * 
+ * @summary Uses the target of the event to change visibility of the SVG to hidden.
+ */
 async function hideDelete(event: Event) {
     const div = event.target as HTMLDivElement;
     const del = div.getElementsByClassName("deletion")[0] as SVGElement;
@@ -125,6 +132,11 @@ async function hideDelete(event: Event) {
     del.style.visibility = 'hidden';
 }
 
+/**
+ * @param permutation The permutation array that stores the changes of the PDF pages.
+ * 
+ * @summary Uses the permuation array to reorder the PDF Object with deleting and re-inserting the pages at the correct positon.
+ */
 async function reorderDoc(permutation: number[]) {
     const d = currentDoc.value;
     const pages = d.getPages();
@@ -137,35 +149,49 @@ async function reorderDoc(permutation: number[]) {
     emit('orderChanged', d);
 }
 
+/**
+ * @param event DragEvent that is sent when the drag starts.
+ * @param index Index of the Element that is dragged.
+ * 
+ * @summary Sets the index of the object as dataTransfer.
+ */
 function drag(event: DragEvent, index: number) {
     event.dataTransfer?.setData("originalPageNumber", index.toString());
 }
 
+/**
+ * @param event The Event that appears on mouse enter when a page is dragged.
+ * 
+ * @summary Adds class 'dragover' to the target of the @param event.
+ */
 function dragenter(event: DragEvent) {
     const div = event.target as HTMLDivElement;
     div.classList.add('dragover');
 }
 
+/**
+ * @param event The Event that appears on mouse leave when a page is dragged.
+ * 
+ * @summary Removes class 'dragover' to the target of the @param event.
+ */
 function dragleave(event: DragEvent) {
     const div = event.target as HTMLDivElement;
     div.classList.remove('dragover');
 }
 
-function mouseenterdelete(event: Event) {
-    const div = event.target as HTMLDivElement;
-    div.classList.add('dragover');
-}
-
-function mouseleavedelete(event: Event) {
-    const div = event.target as HTMLDivElement;
-    div.classList.remove('dragover');
-}
-
+/**
+ * @param index Index of the page that should be removed.
+ * 
+ * @summary Removes the page with the index @param index and emits the  @emits deletedPage.
+ */
 async function deletePage(index: number) {
     currentDoc.value.removePage(index - 1);
     emit('deletedPage', currentDoc.value);
 }
 
+/**
+ * @summary Parses the @field currentDoc to a PDFDocumentProxy, creates the permutation array and triggers rendering for all pages.
+ */
 async function pdfChanged() {
     doc = await pdfjs.getDocument(await currentDoc.value.save()).promise;
     nrOfPages.value = doc.numPages;
@@ -177,6 +203,11 @@ async function pdfChanged() {
     }
 }
 
+/**
+ * @param index Index of the page that shouldbe rendered.
+ * 
+ * @summary Gets the page from the PDF document (@field doc) and renders it into a canvas.
+ */
 async function renderPage(index: number) {
     const page = await doc.getPage(permutation[index]);
     const viewport = page.getViewport({ scale: 1 });
