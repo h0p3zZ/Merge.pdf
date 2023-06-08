@@ -62,7 +62,7 @@ import { PDFDocument } from 'pdf-lib';
 pdfjs.GlobalWorkerOptions.workerSrc = "_nuxt/node_modules/@bundled-es-modules/pdfjs-dist/build/pdf.worker.js";
 
 const props = defineProps({
-    document: {
+    pdfDoc: {
         type: Object,
     },
     triggerRefresh: {
@@ -72,12 +72,12 @@ const props = defineProps({
 
 const emit = defineEmits(['orderChanged', 'deletedPage']);
 
-const pdfDoc = computed(() => props.document as PDFDocument);
+const currentDoc = computed(() => props.pdfDoc as PDFDocument);
 const nrOfPages = ref<Number>();
 let doc: PDFDocumentProxy;
 let permutation: number[];
 
-watch(() => props.document, pdfChanged);
+watch(() => props.pdfDoc, pdfChanged);
 watch(() => props.triggerRefresh, pdfChanged);
 
 function drop(event: DragEvent, i: number) {
@@ -116,7 +116,7 @@ async function hideDelete(event: Event, i: number){
 }
 
 async function reorderDoc(permutation: number[]) {
-    const d = pdfDoc.value;
+    const d = currentDoc.value;
     const pages = d.getPages();
 
     for (let i = 0; i < permutation.length - 1; i++) {
@@ -153,12 +153,12 @@ function mouseleavedelete(event: Event){
 }
 
 async function deletePage(event: Event, i: number){
-    pdfDoc.value.removePage(i - 1);
-    emit('deletedPage', pdfDoc.value);
+    currentDoc.value.removePage(i - 1);
+    emit('deletedPage', currentDoc.value);
 }
 
 async function pdfChanged() {
-    doc = await pdfjs.getDocument(await pdfDoc.value.save()).promise;
+    doc = await pdfjs.getDocument(await currentDoc.value.save()).promise;
     nrOfPages.value = doc.numPages;
     permutation = Array.from({ length: doc.numPages + 1 }, (_, index) => index);
    
