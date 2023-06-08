@@ -5,7 +5,7 @@
       accepted-mime-types="application/pdf,image/jpeg,image/png" />
     <ExportPDF :pdfDoc="currentPdf" />
     <ClientOnly placeholder="loading...">
-      <DisplayPDF :document="currentPdf" :triggerRefresh="triggerRefresh.valueOf()" @order-changed="orderChanged"
+      <DisplayPDF :pdf-doc="currentPdf" :triggerRefresh="triggerRefresh.valueOf()" @order-changed="orderChanged"
         @deletedPage="pageDeleted" />
     </ClientOnly>
   </div>
