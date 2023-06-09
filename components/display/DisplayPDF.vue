@@ -50,7 +50,7 @@
 }
 
 .dropable.dragover {
-    background-color: #FFFFFF;
+    background-color: #000000;
 }
 </style>
 <script setup lang="ts">
