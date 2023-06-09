@@ -23,8 +23,13 @@ const props = defineProps({
     }
 });
 
-async function onFileChanged($event: Event): Promise<void> {
-    const target = $event.target as HTMLInputElement;
+/**
+ * @param event File changed event.
+ * 
+ * @summary Reacts to file changed event and @emits change with the contents of the file.
+ */
+async function onFileChanged(event: Event): Promise<void> {
+    const target = event.target as HTMLInputElement;
     if (target && target.files) {
         const file = new LoadedFile(target.files[0]);
         if (await file.getBytesAsync()) emit('change', file);
