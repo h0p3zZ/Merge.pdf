@@ -5,8 +5,7 @@
       accepted-mime-types="application/pdf,image/jpeg,image/png" />
     <ExportPDF :pdfDoc="currentPdf" />
     <ClientOnly placeholder="loading...">
-      <DisplayPDF :pdf-doc="currentPdf" :triggerRefresh="triggerRefresh.valueOf()" @order-changed="orderChanged"
-        @deletedPage="pageDeleted" />
+      <DisplayPDF :pdf-doc="currentPdf" :triggerRefresh="triggerRefresh.valueOf()" @deletedPage="pageDeleted" />
     </ClientOnly>
   </div>
 </template>
@@ -18,6 +17,9 @@ import { LoadedFile } from './components/import/loadedFile';
 const currentPdf = ref<PDFDocument>(PDFDocument.prototype);
 const triggerRefresh = ref<Number>(0);
 
+/**
+ * Loads the PDF document selected in the import file chooser.
+ */
 async function importFile(file: LoadedFile) {
   const bytes = await file.getBytesAsync();
   if (bytes) {
@@ -26,8 +28,8 @@ async function importFile(file: LoadedFile) {
 }
 
 /**
- * TODO: AndiLeeb add documentation for this function
- * @param addedFile 
+ * Loads another file to add to the current document.
+ * @param addedFile The loaded file to add, currently JPEG, PNG and PDF are supported.
  */
 async function addFile(addedFile: LoadedFile) {
   const pdf1 = currentPdf.value as PDFDocument;
@@ -67,9 +69,9 @@ async function addFile(addedFile: LoadedFile) {
 }
 
 /**
- * TODO: AndiLeeb add documentation for this function
- * @param pdf 
- * @param image 
+ * Creates a PDF page with the given image - does not add it to the document though.
+ * @param pdf The PDF document for which the page should be created.
+ * @param image The image to put into the new page.
  */
 function createPageWithImage(pdf: PDFDocument, image: PDFImage): PDFPage {
   const page = PDFPage.create(pdf);
@@ -87,12 +89,10 @@ function createPageWithImage(pdf: PDFDocument, image: PDFImage): PDFPage {
   return page;
 }
 
-async function orderChanged(pdfD: PDFDocument) {
-  currentPdf.value = pdfD;
-}
-
-async function pageDeleted(pdfD: PDFDocument) {
-  currentPdf.value = pdfD;
+/**
+ * Callback for when a page is deleted, refreshes the rendering.
+ */
+async function pageDeleted() {
   triggerRefresh.value = triggerRefresh.value.valueOf() + 1;
 }
 </script>

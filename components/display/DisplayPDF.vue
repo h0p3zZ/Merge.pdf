@@ -68,7 +68,7 @@ const props = defineProps({
     },
 });
 
-const emit = defineEmits(['orderChanged', 'deletedPage']);
+const emit = defineEmits(['deletedPage']);
 
 const currentDoc = computed(() => props.pdfDoc as PDFDocument);
 const nrOfPages = ref<Number>();
@@ -135,7 +135,7 @@ async function hideDelete(event: Event) {
 /**
  * @param permutation The permutation array that stores the changes of the PDF pages.
  * 
- * @summary Uses the permuation array to reorder the PDF Object with deleting and re-inserting the pages at the correct positon.
+ * @summary Uses the permuation array to reorder the PDF Object with deleting and re-inserting the pages at the correct position.
  */
 async function reorderDoc(permutation: number[]) {
     const d = currentDoc.value;
@@ -145,8 +145,6 @@ async function reorderDoc(permutation: number[]) {
         d.removePage(i);
         d.insertPage(i, pages[permutation[i + 1] - 1]);
     }
-
-    emit('orderChanged', d);
 }
 
 /**
@@ -186,7 +184,7 @@ function dragleave(event: DragEvent) {
  */
 async function deletePage(index: number) {
     currentDoc.value.removePage(index - 1);
-    emit('deletedPage', currentDoc.value);
+    emit('deletedPage');
 }
 
 /**
