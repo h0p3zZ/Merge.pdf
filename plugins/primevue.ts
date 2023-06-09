@@ -5,6 +5,10 @@ import ToastService from "primevue/toastservice";
 import Dialog from "primevue/dialog";
 import Toast from "primevue/toast";
 
+/**
+ * This Nuxt plugin is used to initiate PrimeVue and the components/services
+ * needed in the application.
+ */
 export default defineNuxtPlugin((nuxtApp) => {
     nuxtApp.vueApp.use(PrimeVue, { ripple: true });
     nuxtApp.vueApp.use(ToastService);

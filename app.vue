@@ -1,30 +1,51 @@
 <template>
-  <div>
+  <div class="container">
     <ImportPDF @change="importFile" button-name="Import PDF" accepted-mime-types="application/pdf" />
-    <ImportPDF @change="addFile" button-name="Add another file"
-      accepted-mime-types="application/pdf,image/jpeg,image/png" />
+    <ImportPDF @change="addFile" button-name="Add another file" accepted-mime-types="application/pdf,image/jpeg,image/png"
+      :disabled="disableAddFile" />
     <ExportPDF :pdfDoc="currentPdf" />
     <ClientOnly placeholder="loading...">
-      <DisplayPDF :document="currentPdf" :triggerRefresh="triggerRefresh.valueOf()" @order-changed="orderChanged"
-        @deletedPage="pageDeleted" />
+      <DisplayPDF :pdf-doc="currentPdf" :triggerRefresh="triggerRefresh.valueOf()" @deletedPage="pageDeleted" />
     </ClientOnly>
   </div>
 </template>
-
+<style scoped lang="css">
+.container {
+  margin-top: 3rem;
+}
+</style>
 <script setup lang="ts">
 import { PDFDocument, PDFImage, PDFPage } from 'pdf-lib';
 import { LoadedFile } from './components/import/loadedFile';
+import { useHeadSafe } from './.nuxt/imports';
+
+useHeadSafe({
+  link: [
+    { rel: 'icon', type: 'image/x-icon', href: './public/favivon.ico' },
+  ],
+});
 
 const currentPdf = ref<PDFDocument>(PDFDocument.prototype);
 const triggerRefresh = ref<Number>(0);
+const disableAddFile = ref<boolean>(true);
 
+/**
+ * Loads the PDF document selected in the import file chooser.
+ */
 async function importFile(file: LoadedFile) {
   const bytes = await file.getBytesAsync();
   if (bytes) {
     currentPdf.value = await PDFDocument.load(bytes);
+    disableAddFile.value = false;
+  } else {
+    disableAddFile.value = true;
   }
 }
 
+/**
+ * Loads another file to add to the current document.
+ * @param addedFile The loaded file to add, currently JPEG, PNG and PDF are supported.
+ */
 async function addFile(addedFile: LoadedFile) {
   const pdf1 = currentPdf.value as PDFDocument;
   let newPages: PDFPage[] = [];
@@ -58,10 +79,15 @@ async function addFile(addedFile: LoadedFile) {
       return;
   }
 
-  newPages.forEach((page, i, _) => pdf1.addPage(page));
+  newPages.forEach(page => pdf1.addPage(page));
   triggerRefresh.value = triggerRefresh.value.valueOf() + 1;
 }
 
+/**
+ * Creates a PDF page with the given image - does not add it to the document though.
+ * @param pdf The PDF document for which the page should be created.
+ * @param image The image to put into the new page.
+ */
 function createPageWithImage(pdf: PDFDocument, image: PDFImage): PDFPage {
   const page = PDFPage.create(pdf);
   const firstPage = pdf.getPage(1);
@@ -74,18 +100,14 @@ function createPageWithImage(pdf: PDFDocument, image: PDFImage): PDFPage {
   } else {
     scaled = image.scale(1);
   }
-  console.log(`scaled from ${image.width}x${image.height} to ${scaled.width}x${scaled.height} for page size ${firstPage.getWidth()}x${firstPage.getHeight()}`);
   page.drawImage(image, { x: 0, y: page.getHeight() - scaled.height, width: scaled.width, height: scaled.height });
   return page;
 }
 
-async function orderChanged(pdfD: PDFDocument) {
-  console.log("order changed");
-  currentPdf.value = pdfD;
-}
-
-async function pageDeleted(pdfD: PDFDocument) {
-  currentPdf.value = pdfD;
+/**
+ * Callback for when a page is deleted, refreshes the rendering.
+ */
+async function pageDeleted() {
   triggerRefresh.value = triggerRefresh.value.valueOf() + 1;
 }
 </script>
