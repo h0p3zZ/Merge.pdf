@@ -2,7 +2,8 @@
   <div>
     <ImportPDF @change="importFile" button-name="Import PDF" accepted-mime-types="application/pdf" />
     <ImportPDF @change="addFile" button-name="Add another file"
-      accepted-mime-types="application/pdf,image/jpeg,image/png" />
+      accepted-mime-types="application/pdf,image/jpeg,image/png" 
+      v-if="showAddFile"/>
     <ExportPDF :pdfDoc="currentPdf" />
     <ClientOnly placeholder="loading...">
       <DisplayPDF :pdf-doc="currentPdf" :triggerRefresh="triggerRefresh.valueOf()" @deletedPage="pageDeleted" />
@@ -16,6 +17,7 @@ import { LoadedFile } from './components/import/loadedFile';
 
 const currentPdf = ref<PDFDocument>(PDFDocument.prototype);
 const triggerRefresh = ref<Number>(0);
+const showAddFile = ref<boolean>(false);
 
 /**
  * Loads the PDF document selected in the import file chooser.
@@ -24,6 +26,9 @@ async function importFile(file: LoadedFile) {
   const bytes = await file.getBytesAsync();
   if (bytes) {
     currentPdf.value = await PDFDocument.load(bytes);
+    showAddFile.value = true;
+  } else {
+    showAddFile.value = false;
   }
 }
 
