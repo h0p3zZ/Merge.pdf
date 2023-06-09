@@ -19,6 +19,13 @@
 <script setup lang="ts">
 import { PDFDocument, PDFImage, PDFPage } from 'pdf-lib';
 import { LoadedFile } from './components/import/loadedFile';
+import { useHeadSafe } from './.nuxt/imports';
+
+useHeadSafe({
+  link: [
+    { rel: 'icon', type: 'image/x-icon', href: './public/favivon.ico' },
+  ],
+});
 
 const currentPdf = ref<PDFDocument>(PDFDocument.prototype);
 const triggerRefresh = ref<Number>(0);
