@@ -1,5 +1,7 @@
 <template>
-    <button @click="showDialog = true" class="btn btn-primary" :disabled="disabled">Save</button>
+    <div class="container-fluid">
+        <button @click="showDialog = true" class="btn btn-primary" :disabled="disabled">Save</button>
+    </div>
 
     <!-- Toast for the Toast Service - used for the error messages -->
     <p-toast/>

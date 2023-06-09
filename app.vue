@@ -3,9 +3,7 @@
     <ImportPDF @change="importFile" button-name="Import PDF" accepted-mime-types="application/pdf" />
     <ImportPDF @change="addFile" button-name="Add another file" accepted-mime-types="application/pdf,image/jpeg,image/png"
       :disabled="disableAddFile" />
-    <div class="container-fluid">
-      <ExportPDF :pdfDoc="currentPdf" />
-    </div>
+    <ExportPDF :pdfDoc="currentPdf" />
     <ClientOnly placeholder="loading...">
       <DisplayPDF :pdf-doc="currentPdf" :triggerRefresh="triggerRefresh.valueOf()" @deletedPage="pageDeleted" />
     </ClientOnly>
