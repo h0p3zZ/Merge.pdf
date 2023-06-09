@@ -1,5 +1,7 @@
 /**
- * TODO: MichiFab document why this exists
+ * Class used to process a part of the export String used
+ * for file splitting, checks said string vor validity
+ * and throws Errors for invalid strings
  */
 export class PageEntry {
     private pageEntry: string;
@@ -7,6 +9,15 @@ export class PageEntry {
     private pageStart: number;
     private pageEnd: number;
 
+    /**
+     * @param pageEntry String in integer-interval-notation to determine pages to export
+     * @param pageCount Number of pages in the source document
+     * @throws Error when empty string is passed
+     * @throws Error when range string has no identifiable end
+     * @throws Error when pages numbered higher than last page are entered
+     * @throws Error when start index of range is higher than end index of range
+     * @summary Create new PageEntry
+     */
     constructor(pageEntry: string, pageCount: number) {
         this.pageEntry = pageEntry;
         this.pageCount = pageCount;
@@ -26,14 +37,25 @@ export class PageEntry {
             throw new Error("Invalid: start index greater than end index");
     }
 
+    /**
+     * @returns Number of first page of range to be exported
+     */
     public async getPageStart(): Promise<number> {
         return this.pageStart;
     }
 
+    /**
+     * @returns Number of last page of range to be exported
+     */
     public async getPageEnd(): Promise<number> {
         return this.pageEnd;
     }
 
+    /**
+     * @returns Number of first page of range to be exported
+     * @throws Error when value that is extracted is not a number
+     * @summary Private helper method to initally get number of start page and check whether the number passed is valid
+     */
     private initPageStart(): number {
         let arr = this.pageEntry.split('-');
 
@@ -42,6 +64,10 @@ export class PageEntry {
         return parseInt(arr[0]);
     }
 
+    /**
+     * @returns Number of last page of range to be exported if specified, number of first page otherwise
+     * @summary Private helper method to initially get number of end page provided that it is specified
+     */
     private initPageEnd(): number {
         let arr = this.pageEntry.split('-');
         return isNaN(parseInt(arr[1])) ? this.initPageStart() : parseInt(arr[1]);
