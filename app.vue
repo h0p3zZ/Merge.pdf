@@ -25,6 +25,10 @@ async function importFile(file: LoadedFile) {
   }
 }
 
+/**
+ * TODO: AndiLeeb add documentation for this function
+ * @param addedFile 
+ */
 async function addFile(addedFile: LoadedFile) {
   const pdf1 = currentPdf.value as PDFDocument;
   let newPages: PDFPage[] = [];
@@ -62,6 +66,11 @@ async function addFile(addedFile: LoadedFile) {
   triggerRefresh.value = triggerRefresh.value.valueOf() + 1;
 }
 
+/**
+ * TODO: AndiLeeb add documentation for this function
+ * @param pdf 
+ * @param image 
+ */
 function createPageWithImage(pdf: PDFDocument, image: PDFImage): PDFPage {
   const page = PDFPage.create(pdf);
   const firstPage = pdf.getPage(1);
