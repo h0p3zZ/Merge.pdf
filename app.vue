@@ -62,7 +62,7 @@ async function addFile(addedFile: LoadedFile) {
       return;
   }
 
-  newPages.forEach((page, i, _) => pdf1.addPage(page));
+  newPages.forEach(page => pdf1.addPage(page));
   triggerRefresh.value = triggerRefresh.value.valueOf() + 1;
 }
 
@@ -83,13 +83,11 @@ function createPageWithImage(pdf: PDFDocument, image: PDFImage): PDFPage {
   } else {
     scaled = image.scale(1);
   }
-  console.log(`scaled from ${image.width}x${image.height} to ${scaled.width}x${scaled.height} for page size ${firstPage.getWidth()}x${firstPage.getHeight()}`);
   page.drawImage(image, { x: 0, y: page.getHeight() - scaled.height, width: scaled.width, height: scaled.height });
   return page;
 }
 
 async function orderChanged(pdfD: PDFDocument) {
-  console.log("order changed");
   currentPdf.value = pdfD;
 }
 
