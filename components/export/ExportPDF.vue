@@ -4,14 +4,15 @@
     </div>
 
     <!-- Toast for the Toast Service - used for the error messages -->
-    <p-toast/>
+    <p-toast />
     <p-dialog :visible="showDialog" header="Save dialog" modal :closable="false" :draggable="false" style="width: 50vw">
-        <p>Type the files you want to export in the format [startIndex-endIndex, singlepageIndex, etc.], [etc.],
-                        etc.
-                        - each [] is a seperate file and both startIndex and endIndex are included in ranges.</p>
-                    <p>Leaving it blank will export the whole pdf as a single file.</p>
-                    <input v-model="exportString" class="form-control"
-                        placeholder="[startIndex-endIndex, singlepageIndex, etc.], etc." type="text">
+        <p>Type the files you want to export in the format [{startIndex}..{endIndex}, singlepageIndex, etc.], [etc.],
+            etc.
+            - each [] is a seperate file and both startIndex and endIndex are included in ranges. If either is left out
+            startIndex defaults to 1 and endIndex defaults to pageCount</p>
+        <p>Leaving it blank will export the whole pdf as a single file.</p>
+        <input v-model="exportString" class="form-control" placeholder="[startIndex..endIndex, singlepageIndex, etc.], etc."
+            type="text">
         <template #footer>
             <button @click="showDialog = false" class="btn btn-secondary">Cancel</button>
             <button @click="saveFile" class="btn btn-primary">Save</button>
@@ -60,7 +61,7 @@ watch(() => props.pdfDoc, (newDoc) => {
 async function saveFile() {
     const errorMessage: string | null = await exportPDF(exportString.value, currentDoc);
     if (errorMessage) {
-        toastService.add({ severity: "error", summary: errorMessage, life: 7000, closable: true});
+        toastService.add({ severity: "error", summary: errorMessage, life: 7000, closable: true });
         return;
     }
     exportString.value = '';
