@@ -6,7 +6,7 @@
     <!-- Toast for the Toast Service - used for the error messages -->
     <p-toast />
     <p-dialog :visible="showDialog" header="Save dialog" modal :closable="false" :draggable="false" style="width: 50vw"
-        @show="() => exportStringInput.focus()">
+        @show="exportStringInput.focus()">
         <p>Type the files you want to export in the format [{startIndex}..{endIndex}, singlepageIndex, etc.], [etc.],
             etc.
             - each [] is a seperate file and both startIndex and endIndex are included in ranges. If either is left out
