@@ -1,5 +1,6 @@
 import { PDFDocument } from "pdf-lib";
 import { PageEntry } from "./PageEntry";
+import { ExportStringContstants } from "./ExportStringConstants";
 
 /**
  * @param exportString The export string that is parsed in the funciton.
@@ -18,8 +19,8 @@ export async function exportPDF(exportString: string, pdfDoc: PDFDocument): Prom
 
     exportString = exportString.replaceAll(" ", "");
 
-    let startIndex = exportString.indexOf('[') + 1;
-    let endIndex = exportString.indexOf(']');
+    let startIndex = exportString.indexOf(ExportStringContstants.FILE_START) + 1;
+    let endIndex = exportString.indexOf(ExportStringContstants.FILE_END);
 
     if (startIndex == -1 || endIndex == -1) {
         return "Invalid: export expression must be in between []-brackets";
@@ -30,7 +31,7 @@ export async function exportPDF(exportString: string, pdfDoc: PDFDocument): Prom
         let prevEndIndex = endIndex;
 
         let pageString = exportString.substring(startIndex, endIndex);
-        let pageArr = pageString.split(',');
+        let pageArr = pageString.split(ExportStringContstants.PAGE_SEPARATOR);
 
         documents[docIndex] = await PDFDocument.create();
 
@@ -49,8 +50,8 @@ export async function exportPDF(exportString: string, pdfDoc: PDFDocument): Prom
             await addPages(documents[docIndex], pdfDoc, pageStart, pageEnd);
         }
 
-        endIndex = exportString.indexOf(']', prevEndIndex + 1);
-        startIndex = exportString.indexOf('[', prevEndIndex + 1) + 1;
+        endIndex = exportString.indexOf(ExportStringContstants.FILE_END, prevEndIndex + 1);
+        startIndex = exportString.indexOf(ExportStringContstants.FILE_START, prevEndIndex + 1) + 1;
     }
 
     documents.forEach(async (doc, index) => {

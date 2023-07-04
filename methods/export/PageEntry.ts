@@ -1,3 +1,5 @@
+import { ExportStringContstants } from "./ExportStringConstants";
+
 /**
  * Class used to process a part of the export String used
  * for file splitting, checks said string vor validity
@@ -25,8 +27,6 @@ export class PageEntry {
         if (pageEntry === '') {
             throw new Error("Invalid: page string is empty");
         }
-        if (pageEntry.endsWith("-"))
-            throw new Error("Invalid: no end page defined");
 
         this.pageStart = this.initPageStart();
         this.pageEnd = this.initPageEnd();
@@ -57,7 +57,9 @@ export class PageEntry {
      * @summary Private helper method to initally get number of start page and check whether the number passed is valid
      */
     private initPageStart(): number {
-        let arr = this.pageEntry.split('-');
+        const arr = this.pageEntry.split(ExportStringContstants.PAGE_RANGE_SEPARATOR);
+
+        if (arr[0] === '') return 1;
 
         if (isNaN(parseInt(arr[0])))
             throw new Error("Invalid: page start not a number");
@@ -69,7 +71,15 @@ export class PageEntry {
      * @summary Private helper method to initially get number of end page provided that it is specified
      */
     private initPageEnd(): number {
-        let arr = this.pageEntry.split('-');
-        return isNaN(parseInt(arr[1])) ? this.initPageStart() : parseInt(arr[1]);
+        const arr = this.pageEntry.split(ExportStringContstants.PAGE_RANGE_SEPARATOR);
+
+        if (this.pageEntry.includes(ExportStringContstants.PAGE_RANGE_SEPARATOR) && arr[1] === '') return this.pageCount;
+
+        if (this.pageEntry.includes(ExportStringContstants.PAGE_RANGE_SEPARATOR)) return parseInt(arr[1]);
+
+        if (isNaN(parseInt(arr[0])))
+            throw new Error("Invalid: page end not a number");
+
+        return parseInt(arr[0]);
     }
 }
